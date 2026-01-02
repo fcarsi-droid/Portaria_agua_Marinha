@@ -1,0 +1,189 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Portaria Água Marinha</title>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <style>
+        :root { 
+            --pop-art-blue: #00b4d8; 
+            --pop-art-yellow: #ffb703; 
+            --pop-art-pink: #fb8500; 
+        }
+        body { 
+            font-family: 'Arial Black', sans-serif; 
+            background-color: #e5e5e5; 
+            padding: 20px; 
+            display: flex; 
+            justify-content: center; 
+        }
+        .card { 
+            background: white; 
+            border: 4px solid black; 
+            padding: 25px; 
+            box-shadow: 12px 12px 0px black; 
+            width: 100%; 
+            max-width: 400px; 
+        }
+        h1 { 
+            text-transform: uppercase; 
+            border-bottom: 4px solid black; 
+            padding-bottom: 10px; 
+            font-size: 1.4rem;
+            margin-top: 0;
+        }
+        label { 
+            display: block; 
+            margin-top: 20px; 
+            text-transform: uppercase; 
+            font-size: 0.75em; 
+            letter-spacing: 1px; 
+        }
+        select, input, button { 
+            width: 100%; 
+            padding: 12px; 
+            margin-top: 8px; 
+            border: 3px solid black; 
+            font-weight: bold; 
+            box-sizing: border-box; 
+            font-size: 1rem;
+        }
+        button { 
+            background-color: var(--pop-art-yellow); 
+            cursor: pointer; 
+            margin-top: 30px; 
+            transition: 0.2s; 
+            text-transform: uppercase; 
+        }
+        button:hover { 
+            background-color: var(--pop-art-pink); 
+            transform: translate(-3px, -3px); 
+            box-shadow: 5px 5px 0px black; 
+        }
+        #status-msg { 
+            margin-top: 20px; 
+            font-weight: bold; 
+            color: #1b4332; 
+            display: none; 
+            text-align: center; 
+            border: 3px dashed black; 
+            padding: 15px;
+            background-color: #d8f3dc;
+        }
+    </style>
+</head>
+<body>
+
+<div class="card">
+    <h1>📦 PORTARIA ÁGUA MARINHA</h1>
+    
+    <label>1. Selecione o Bloco</label>
+    <select id="bloco" onchange="filtrarApartamentos()">
+        <option value="">Carregando blocos...</option>
+    </select>
+
+    <label>2. Selecione o Apartamento</label>
+    <select id="apartamento">
+        <option value="">Aguardando Bloco...</option>
+    </select>
+
+    <label>3. Quantidade de Volumes</label>
+    <input type="number" id="qtd" value="1" min="1">
+
+    <button onclick="registrarEncomenda()">REGISTRAR E AVISAR MORADOR</button>
+    
+    <div id="status-msg">✅ REGISTRADO!<br>ABRINDO WHATSAPP...</div>
+</div>
+
+<script>
+    // Configurações do seu banco de dados Supabase
+    const SUPABASE_URL = 'https://esegzalccqvoypdpencs.supabase.co';
+    const SUPABASE_KEY = 'sb_publishable_kuJIAQ5crRqZlNO5spRdJQ__G9QLrjI';
+    
+    // IMPORTANTE: Mudamos para 'supabaseClient' para não dar erro de redeclaração
+    const supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+
+    let moradoresGlobal = [];
+
+    // Função que busca os moradores no Supabase ao abrir o site
+    async function carregarMoradores() {
+        console.log("Buscando moradores...");
+        const { data, error } = await supabaseClient.from('moradores').select('*').order('bloco').order('apartamento');
+        
+        if (error) {
+            console.error("Erro na conexão:", error);
+            document.getElementById('bloco').innerHTML = '<option>Erro ao conectar</option>';
+        } else {
+            console.log("Dados recebidos:", data);
+            moradoresGlobal = data;
+            
+            // Extrai os blocos únicos (ex: Bloco F)
+            const blocosUnicos = [...new Set(data.map(m => m.bloco))];
+            const selectBloco = document.getElementById('bloco');
+            
+            if (blocosUnicos.length === 0) {
+                selectBloco.innerHTML = '<option value="">Nenhum morador cadastrado</option>';
+            } else {
+                selectBloco.innerHTML = '<option value="">Selecione o Bloco</option>';
+                blocosUnicos.forEach(b => {
+                    let opt = document.createElement('option');
+                    opt.value = b; 
+                    opt.innerText = 'Bloco ' + b;
+                    selectBloco.appendChild(opt);
+                });
+            }
+        }
+    }
+
+    // Filtra os apartamentos de acordo com o bloco selecionado
+    function filtrarApartamentos() {
+        const blocoSel = document.getElementById('bloco').value;
+        const selectApto = document.getElementById('apartamento');
+        selectApto.innerHTML = '<option value="">Selecione o Apartamento</option>';
+        
+        const filtrados = moradoresGlobal.filter(m => m.bloco === blocoSel);
+        filtrados.forEach(m => {
+            let opt = document.createElement('option');
+            opt.value = m.id; 
+            opt.innerText = 'Apto ' + m.apartamento + ' (' + m.nome + ')';
+            selectApto.appendChild(opt);
+        });
+    }
+
+    // Salva a encomenda e gera o link do WhatsApp
+    async function registrarEncomenda() {
+        const moradorId = document.getElementById('apartamento').value;
+        const qtd = document.getElementById('qtd').value;
+        
+        if (!moradorId) return alert("Por favor, selecione o morador!");
+
+        // Insere na tabela de encomendas
+        const { error } = await supabaseClient.from('encomendas').insert([
+            { morador_id: moradorId, quantidade: parseInt(qtd) }
+        ]);
+
+        if (!error) {
+            const morador = moradoresGlobal.find(m => m.id == moradorId);
+            
+            // Monta a mensagem personalizada para o morador
+            const msg = `📦 *PORTARIA ÁGUA MARINHA*\n\nOlá ${morador.nome}!\nUma nova encomenda chegou para você.\n*Quantidade:* ${qtd} volume(s).\n\n_Por favor, retire na portaria._`;
+            const urlWhats = `https://wa.me/${morador.whatsapp}?text=${encodeURIComponent(msg)}`;
+            
+            document.getElementById('status-msg').style.display = 'block';
+            
+            // Abre o WhatsApp após 1 segundo
+            setTimeout(() => { 
+                window.open(urlWhats, '_blank'); 
+            }, 1000);
+        } else {
+            alert("Erro ao salvar no banco: " + error.message);
+        }
+    }
+
+    // Inicia a busca assim que a página carrega
+    carregarMoradores();
+</script>
+
+</body>
+</html>
