@@ -6,184 +6,126 @@
     <title>Portaria Água Marinha</title>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <style>
-        :root { 
-            --pop-art-blue: #00b4d8; 
-            --pop-art-yellow: #ffb703; 
-            --pop-art-pink: #fb8500; 
-        }
-        body { 
-            font-family: 'Arial Black', sans-serif; 
-            background-color: #e5e5e5; 
-            padding: 20px; 
-            display: flex; 
-            justify-content: center; 
-        }
-        .card { 
-            background: white; 
-            border: 4px solid black; 
-            padding: 25px; 
-            box-shadow: 12px 12px 0px black; 
-            width: 100%; 
-            max-width: 400px; 
-        }
-        h1 { 
-            text-transform: uppercase; 
-            border-bottom: 4px solid black; 
-            padding-bottom: 10px; 
-            font-size: 1.4rem;
-            margin-top: 0;
-        }
-        label { 
-            display: block; 
-            margin-top: 20px; 
-            text-transform: uppercase; 
-            font-size: 0.75em; 
-            letter-spacing: 1px; 
-        }
-        select, input, button { 
-            width: 100%; 
-            padding: 12px; 
-            margin-top: 8px; 
-            border: 3px solid black; 
-            font-weight: bold; 
-            box-sizing: border-box; 
-            font-size: 1rem;
-        }
-        button { 
-            background-color: var(--pop-art-yellow); 
-            cursor: pointer; 
-            margin-top: 30px; 
-            transition: 0.2s; 
-            text-transform: uppercase; 
-        }
-        button:hover { 
-            background-color: var(--pop-art-pink); 
-            transform: translate(-3px, -3px); 
-            box-shadow: 5px 5px 0px black; 
-        }
-        #status-msg { 
-            margin-top: 20px; 
-            font-weight: bold; 
-            color: #1b4332; 
-            display: none; 
-            text-align: center; 
-            border: 3px dashed black; 
-            padding: 15px;
-            background-color: #d8f3dc;
-        }
+        :root { --yellow: #ffb703; --pink: #fb8500; --blue: #00b4d8; }
+        body { font-family: 'Arial Black', sans-serif; background-color: #f0f0f0; padding: 15px; display: flex; flex-direction: column; align-items: center; }
+        .card { background: white; border: 4px solid black; padding: 20px; box-shadow: 8px 8px 0px black; width: 100%; max-width: 450px; margin-bottom: 30px; }
+        h1, h2 { text-transform: uppercase; border-bottom: 4px solid black; padding-bottom: 5px; margin-top: 0; }
+        label { display: block; margin-top: 15px; font-size: 0.7em; text-transform: uppercase; }
+        select, input, button { width: 100%; padding: 12px; margin-top: 5px; border: 3px solid black; font-weight: bold; box-sizing: border-box; }
+        button { background-color: var(--yellow); cursor: pointer; text-transform: uppercase; }
+        button:hover { background-color: var(--pink); transform: translate(-2px, -2px); box-shadow: 4px 4px 0px black; }
+        .item-pendente { border: 2px solid black; padding: 10px; margin-top: 10px; background: #fff; display: flex; justify-content: space-between; align-items: center; font-size: 0.9em; }
+        .btn-baixa { width: auto; margin: 0; padding: 5px 10px; background: #90be6d; font-size: 0.7em; }
+        .btn-relatorio { background: var(--blue); margin-top: 10px; color: white; }
     </style>
 </head>
 <body>
 
-<div class="card">
-    <h1>📦 PORTARIA ÁGUA MARINHA</h1>
-    
-    <label>1. Selecione o Bloco</label>
-    <select id="bloco" onchange="filtrarApartamentos()">
-        <option value="">Carregando blocos...</option>
-    </select>
+    <div class="card">
+        <h1>📦 Registrar Entrada</h1>
+        <label>Bloco</label>
+        <select id="bloco" onchange="filtrarApartamentos()"><option>Carregando...</option></select>
+        <label>Apartamento</label>
+        <select id="apartamento"><option>Selecione o Bloco...</option></select>
+        <label>Volumes</label>
+        <input type="number" id="qtd" value="1" min="1">
+        <button onclick="registrar()">Salvar e Avisar no Whats</button>
+    </div>
 
-    <label>2. Selecione o Apartamento</label>
-    <select id="apartamento">
-        <option value="">Aguardando Bloco...</option>
-    </select>
-
-    <label>3. Quantidade de Volumes</label>
-    <input type="number" id="qtd" value="1" min="1">
-
-    <button onclick="registrarEncomenda()">REGISTRAR E AVISAR MORADOR</button>
-    
-    <div id="status-msg">✅ REGISTRADO!<br>ABRINDO WHATSAPP...</div>
-</div>
+    <div class="card">
+        <h2>🚚 Aguardando Retirada</h2>
+        <div id="lista-pendentes">Carregando pendências...</div>
+        <button class="btn-relatorio" onclick="exportarDados()">📊 Exportar Relatório (CSV)</button>
+    </div>
 
 <script>
-    // Configurações do seu banco de dados Supabase
     const SUPABASE_URL = 'https://esegzalccqvoypdpencs.supabase.co';
     const SUPABASE_KEY = 'sb_publishable_kuJIAQ5crRqZlNO5spRdJQ__G9QLrjI';
-    
-    // IMPORTANTE: Mudamos para 'supabaseClient' para não dar erro de redeclaração
     const supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 
     let moradoresGlobal = [];
 
-    // Função que busca os moradores no Supabase ao abrir o site
-    async function carregarMoradores() {
-        console.log("Buscando moradores...");
-        const { data, error } = await supabaseClient.from('moradores').select('*').order('bloco').order('apartamento');
-        
-        if (error) {
-            console.error("Erro na conexão:", error);
-            document.getElementById('bloco').innerHTML = '<option>Erro ao conectar</option>';
-        } else {
-            console.log("Dados recebidos:", data);
-            moradoresGlobal = data;
-            
-            // Extrai os blocos únicos (ex: Bloco F)
-            const blocosUnicos = [...new Set(data.map(m => m.bloco))];
-            const selectBloco = document.getElementById('bloco');
-            
-            if (blocosUnicos.length === 0) {
-                selectBloco.innerHTML = '<option value="">Nenhum morador cadastrado</option>';
-            } else {
-                selectBloco.innerHTML = '<option value="">Selecione o Bloco</option>';
-                blocosUnicos.forEach(b => {
-                    let opt = document.createElement('option');
-                    opt.value = b; 
-                    opt.innerText = 'Bloco ' + b;
-                    selectBloco.appendChild(opt);
-                });
-            }
-        }
+    async function inicializar() {
+        await carregarMoradores();
+        await carregarPendencias();
     }
 
-    // Filtra os apartamentos de acordo com o bloco selecionado
+    async function carregarMoradores() {
+        const { data } = await supabaseClient.from('moradores').select('*').order('bloco').order('apartamento');
+        moradoresGlobal = data;
+        const blocos = [...new Set(data.map(m => m.bloco))];
+        const select = document.getElementById('bloco');
+        select.innerHTML = '<option value="">Selecione o Bloco</option>';
+        blocos.forEach(b => select.innerHTML += `<option value="${b}">Bloco ${b}</option>`);
+    }
+
     function filtrarApartamentos() {
-        const blocoSel = document.getElementById('bloco').value;
-        const selectApto = document.getElementById('apartamento');
-        selectApto.innerHTML = '<option value="">Selecione o Apartamento</option>';
-        
-        const filtrados = moradoresGlobal.filter(m => m.bloco === blocoSel);
-        filtrados.forEach(m => {
-            let opt = document.createElement('option');
-            opt.value = m.id; 
-            opt.innerText = 'Apto ' + m.apartamento + ' (' + m.nome + ')';
-            selectApto.appendChild(opt);
+        const bloco = document.getElementById('bloco').value;
+        const select = document.getElementById('apartamento');
+        select.innerHTML = '<option value="">Selecione o Apartamento</option>';
+        moradoresGlobal.filter(m => m.bloco === bloco).forEach(m => {
+            select.innerHTML += `<option value="${m.id}">${m.apartamento} - ${m.nome}</option>`;
         });
     }
 
-    // Salva a encomenda e gera o link do WhatsApp
-    async function registrarEncomenda() {
-        const moradorId = document.getElementById('apartamento').value;
-        const qtd = document.getElementById('qtd').value;
+    async function carregarPendencias() {
+        const { data, error } = await supabaseClient.from('encomendas')
+            .select('id, quantidade, criado_em, moradores(nome, bloco, apartamento, whatsapp)')
+            .eq('status', 'DISPONÍVEL').order('criado_em', { ascending: false });
         
-        if (!moradorId) return alert("Por favor, selecione o morador!");
+        const container = document.getElementById('lista-pendentes');
+        container.innerHTML = data.length === 0 ? "Nenhuma encomenda pendente." : "";
+        data.forEach(item => {
+            container.innerHTML += `
+                <div class="item-pendente">
+                    <div>
+                        <b>${item.moradores.bloco}-${item.moradores.apartamento}</b><br>
+                        <small>${item.quantidade} vol. em ${new Date(item.criado_em).toLocaleDateString()}</small>
+                    </div>
+                    <button class="btn-baixa" onclick="darBaixa(${item.id})">RETIRADO</button>
+                </div>`;
+        });
+    }
 
-        // Insere na tabela de encomendas
-        const { error } = await supabaseClient.from('encomendas').insert([
-            { morador_id: moradorId, quantidade: parseInt(qtd) }
-        ]);
+    async function registrar() {
+        const id = document.getElementById('apartamento').value;
+        const qtd = document.getElementById('qtd').value;
+        if(!id) return alert("Selecione o morador!");
 
-        if (!error) {
-            const morador = moradoresGlobal.find(m => m.id == moradorId);
-            
-            // Monta a mensagem personalizada para o morador
-            const msg = `📦 *PORTARIA ÁGUA MARINHA*\n\nOlá ${morador.nome}!\nUma nova encomenda chegou para você.\n*Quantidade:* ${qtd} volume(s).\n\n_Por favor, retire na portaria._`;
-            const urlWhats = `https://wa.me/${morador.whatsapp}?text=${encodeURIComponent(msg)}`;
-            
-            document.getElementById('status-msg').style.display = 'block';
-            
-            // Abre o WhatsApp após 1 segundo
-            setTimeout(() => { 
-                window.open(urlWhats, '_blank'); 
-            }, 1000);
-        } else {
-            alert("Erro ao salvar no banco: " + error.message);
+        const { error } = await supabaseClient.from('encomendas').insert([{ morador_id: id, quantidade: qtd }]);
+        if(!error) {
+            const m = moradoresGlobal.find(mor => mor.id == id);
+            const msg = window.encodeURIComponent(`📦 *PORTARIA:* Olá ${m.nome}, chegou ${qtd} volume(s) para você.`);
+            window.open(`https://wa.me/${m.whatsapp}?text=${msg}`, '_blank');
+            location.reload();
         }
     }
 
-    // Inicia a busca assim que a página carrega
-    carregarMoradores();
-</script>
+    async function darBaixa(id) {
+        if(confirm("Confirmar que a encomenda foi retirada?")) {
+            await supabaseClient.from('encomendas').update({ status: 'ENTREGUE' }).eq('id', id);
+            location.reload();
+        }
+    }
 
+    async function exportarDados() {
+        const { data } = await supabaseClient.from('encomendas').select('status, quantidade, criado_em, moradores(nome, bloco, apartamento)');
+        let csv = "Data;Bloco;Apto;Nome;Qtd;Status\n";
+        data.forEach(row => {
+            csv += `${new Date(row.criado_em).toLocaleDateString()};${row.moradores.bloco};${row.moradores.apartamento};${row.moradores.nome};${row.quantidade};${row.status}\n`;
+        });
+        const blob = new Blob([csv], { type: 'text/csv' });
+        const url = window.URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.setAttribute('hidden', '');
+        a.setAttribute('href', url);
+        a.setAttribute('download', 'relatorio_encomendas.csv');
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+    }
+
+    inicializar();
+</script>
 </body>
 </html>
