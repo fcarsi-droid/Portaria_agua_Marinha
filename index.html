@@ -16,19 +16,26 @@
         button:hover { background-color: var(--pink); transform: translate(-2px, -2px); box-shadow: 4px 4px 0px black; }
         .item-pendente { border: 2px solid black; padding: 10px; margin-top: 10px; background: #fff; display: flex; justify-content: space-between; align-items: center; font-size: 0.9em; }
         .btn-baixa { width: auto; margin: 0; padding: 5px 10px; background: var(--green); font-size: 0.7em; }
-        .btn-confirmar-morador { background-color: var(--green); height: 100px; font-size: 1.2em; }
         .hidden { display: none !important; }
+        #login-screen { text-align: center; }
     </style>
 </head>
 <body>
 
-    <div id="visao-morador" class="card hidden">
-        <h1>Olá! Confirme sua retirada</h1>
-        <p id="detalhe-encomenda">Buscando detalhes...</p>
-        <button class="btn-confirmar-morador" onclick="confirmarPeloMorador()">📦 CONFIRMAR QUE RECEBI</button>
+    <div id="login-screen" class="card hidden">
+        <h1>Acesso Restrito</h1>
+        <p>Digite a senha da portaria:</p>
+        <input type="password" id="senha-input" placeholder="****">
+        <button onclick="verificarSenha()">Entrar no Sistema</button>
     </div>
 
-    <div id="visao-porteiro">
+    <div id="visao-morador" class="card hidden">
+        <h1 id="titulo-morador">Confirmar Retirada</h1>
+        <p id="detalhe-encomenda">Buscando detalhes...</p>
+        <button id="btn-confirmar" style="background: var(--green); height: 80px;" onclick="confirmarPeloMorador()">📦 CONFIRMAR RECEBIMENTO</button>
+    </div>
+
+    <div id="visao-porteiro" class="hidden">
         <div class="card">
             <h1>📦 Registrar Entrada</h1>
             <label>Bloco</label>
@@ -44,6 +51,7 @@
             <h2>🚚 Aguardando Retirada</h2>
             <div id="lista-pendentes">Carregando...</div>
             <button style="background: var(--blue); margin-top: 20px;" onclick="exportarDados()">📊 Gerar Relatório CSV</button>
+            <button style="background: #ccc; margin-top: 10px; font-size: 0.6em;" onclick="logout()">Sair / Bloquear</button>
         </div>
     </div>
 
@@ -52,6 +60,10 @@
     const SUPABASE_KEY = 'sb_publishable_kuJIAQ5crRqZlNO5spRdJQ__G9QLrjI';
     const supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 
+    // --- DEFINA SUA SENHA AQUI ---
+    const SENHA_MESTRA = "1234"; // Mude para a senha que desejar
+    // ----------------------------
+
     const urlParams = new URLSearchParams(window.location.search);
     const encomendaId = urlParams.get('id');
 
@@ -59,86 +71,102 @@
         if (encomendaId) {
             exibirVisaoMorador();
         } else {
-            await carregarMoradores();
-            await carregarPendencias();
+            verificarSessao();
         }
     }
 
+    function verificarSessao() {
+        if (localStorage.getItem('portaria_logado') === 'true') {
+            exibirVisaoPorteiro();
+        } else {
+            document.getElementById('login-screen').classList.remove('hidden');
+        }
+    }
+
+    function verificarSenha() {
+        const input = document.getElementById('senha-input').value;
+        if (input === SENHA_MESTRA) {
+            localStorage.setItem('portaria_logado', 'true');
+            location.reload();
+        } else {
+            alert("Senha incorreta!");
+        }
+    }
+
+    function logout() {
+        localStorage.removeItem('portaria_logado');
+        location.reload();
+    }
+
+    async function exibirVisaoPorteiro() {
+        document.getElementById('visao-porteiro').classList.remove('hidden');
+        await carregarMoradores();
+        await carregarPendencias();
+    }
+
     async function exibirVisaoMorador() {
-        document.getElementById('visao-porteiro').classList.add('hidden');
         document.getElementById('visao-morador').classList.remove('hidden');
-        
-        const { data } = await supabaseClient.from('encomendas')
-            .select('quantidade, moradores(nome, bloco, apartamento)')
-            .eq('id', encomendaId).single();
+        const { data } = await supabaseClient.from('encomendas').select('quantidade, status, moradores(nome, bloco, apartamento)').eq('id', encomendaId).single();
         
         if (data) {
-            document.getElementById('detalhe-encomenda').innerText = 
-                `${data.moradores.nome}, confirme a retirada de ${data.quantidade} volume(s) no Bloco ${data.moradores.bloco}, Apto ${data.moradores.apartamento}.`;
+            if (data.status === 'ENTREGUE') {
+                document.getElementById('visao-morador').innerHTML = "<h1>✅ Já Entregue</h1><p>Esta encomenda já consta como retirada.</p>";
+            } else {
+                document.getElementById('detalhe-encomenda').innerText = `${data.moradores.nome}, confirme a retirada de ${data.quantidade} volume(s) - Bloco ${data.moradores.bloco} Apt ${data.moradores.apartamento}.`;
+            }
         }
     }
 
     async function confirmarPeloMorador() {
-        const { error } = await supabaseClient.from('encomendas')
-            .update({ status: 'ENTREGUE' }).eq('id', encomendaId);
-        
+        const { error } = await supabaseClient.from('encomendas').update({ status: 'ENTREGUE' }).eq('id', encomendaId);
         if (!error) {
-            alert("Sucesso! Retirada confirmada.");
-            window.location.href = window.location.pathname;
+            document.getElementById('visao-morador').innerHTML = "<h1 style='color:var(--green)'>✅ SUCESSO!</h1><p>Sua retirada foi registrada. Obrigado!</p>";
         }
     }
 
     async function carregarMoradores() {
         const { data } = await supabaseClient.from('moradores').select('*').order('bloco').order('apartamento');
+        window.moradoresGlobal = data;
         const blocos = [...new Set(data.map(m => m.bloco))];
         const select = document.getElementById('bloco');
-        select.innerHTML = '<option value="">Selecione o Bloco</option>';
-        blocos.forEach(b => select.innerHTML += `<option value="${b}">Bloco ${b}</option>`);
-        window.moradoresGlobal = data;
+        select.innerHTML = '<option value="">Bloco</option>';
+        blocos.forEach(b => select.innerHTML += `<option value="${b}">${b}</option>`);
     }
 
     function filtrarApartamentos() {
         const bloco = document.getElementById('bloco').value;
         const select = document.getElementById('apartamento');
-        select.innerHTML = '<option value="">Selecione o Apartamento</option>';
+        select.innerHTML = '<option value="">Apartamento</option>';
         window.moradoresGlobal.filter(m => m.bloco === bloco).forEach(m => {
             select.innerHTML += `<option value="${m.id}">${m.apartamento} - ${m.nome}</option>`;
         });
     }
 
     async function carregarPendencias() {
-        const { data } = await supabaseClient.from('encomendas')
-            .select('id, quantidade, criado_em, moradores(nome, bloco, apartamento)')
-            .eq('status', 'DISPONÍVEL').order('criado_em', { ascending: false });
-        
+        const { data } = await supabaseClient.from('encomendas').select('id, quantidade, criado_em, moradores(nome, bloco, apartamento)').eq('status', 'DISPONÍVEL').order('criado_em', { ascending: false });
         const container = document.getElementById('lista-pendentes');
-        container.innerHTML = data.length === 0 ? "Nenhuma encomenda." : "";
+        container.innerHTML = data.length === 0 ? "Tudo entregue!" : "";
         data.forEach(item => {
-            container.innerHTML += `
-                <div class="item-pendente">
-                    <div><b>${item.moradores.bloco}-${item.moradores.apartamento}</b><br><small>${item.moradores.nome}</small></div>
-                    <button class="btn-baixa" onclick="darBaixa(${item.id})">BAIXA PORTEIRO</button>
-                </div>`;
+            container.innerHTML += `<div class="item-pendente"><div><b>${item.moradores.bloco}-${item.moradores.apartamento}</b><br><small>${item.moradores.nome}</small></div><button class="btn-baixa" onclick="darBaixa(${item.id})">BAIXA</button></div>`;
         });
     }
 
     async function registrar() {
         const id = document.getElementById('apartamento').value;
         const qtd = document.getElementById('qtd').value;
+        if(!id) return alert("Selecione o morador!");
         const { data, error } = await supabaseClient.from('encomendas').insert([{ morador_id: id, quantidade: qtd }]).select();
-        
         if(!error) {
             const m = window.moradoresGlobal.find(mor => mor.id == id);
-            const siteUrl = window.location.href.split('?')[0];
-            const linkConfirmacao = `${siteUrl}?id=${data[0].id}`;
-            const msg = window.encodeURIComponent(`📦 *PORTARIA:* Olá ${m.nome}, chegou sua encomenda (${qtd} vol).\n\nConfirme a retirada neste link quando pegar: ${linkConfirmacao}`);
+            const link = `${window.location.origin}${window.location.pathname}?id=${data[0].id}`;
+            const msg = window.encodeURIComponent(`📦 *PORTARIA:* Olá ${m.nome}, chegou sua encomenda.\nConfirme a retirada aqui: ${link}`);
             window.open(`https://wa.me/${m.whatsapp}?text=${msg}`, '_blank');
             location.reload();
         }
     }
 
     async function darBaixa(id) {
-        if(confirm("Porteiro, confirma a entrega manual?")) {
+        if(confirm("Confirmar entrega manual?")) {
             await supabaseClient.from('encomendas').update({ status: 'ENTREGUE' }).eq('id', id);
             location.reload();
         }
@@ -154,7 +182,7 @@
         const url = window.URL.createObjectURL(blob);
         const a = document.createElement('a');
         a.href = url;
-        a.download = 'relatorio_encomendas.csv';
+        a.download = 'relatorio.csv';
         a.click();
     }
 
