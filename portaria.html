@@ -87,7 +87,7 @@
         const input = document.getElementById('senha-input').value;
         if (input === SENHA_MESTRA) {
             localStorage.setItem('portaria_logado', 'true');
-            location.reload();
+            window.location.href = 'index.html';
         } else {
             alert("Senha incorreta!");
         }
@@ -190,4 +190,5 @@
 </script>
 </body>
 </html>
+
 
