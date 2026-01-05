@@ -9,97 +9,116 @@
 </head>
 <body class="bg-gray-100 min-h-screen p-4 flex items-center justify-center">
 
-    <div class="max-w-md w-full bg-white rounded-xl shadow-lg p-8 border-t-8 border-blue-600">
-        <div class="text-center mb-8">
+    <div id="telaSenha" class="max-w-md w-full bg-white rounded-xl shadow-lg p-8 border-t-8 border-gray-800">
+        <h2 class="text-xl font-bold text-center mb-6">Acesso ao Cadastro</h2>
+        <input type="password" id="senhaAcesso" placeholder="Digite a senha do condomínio" 
+            class="w-full border border-gray-300 rounded-lg p-3 mb-4 focus:ring-2 focus:ring-blue-500 outline-none">
+        <button onclick="verificarSenha()" class="w-full bg-gray-800 text-white py-3 rounded-lg font-bold hover:bg-black transition">
+            ENTRAR
+        </button>
+    </div>
+
+    <div id="formContainer" class="max-w-md w-full bg-white rounded-xl shadow-lg p-8 border-t-8 border-blue-600 hidden">
+        <div class="text-center mb-6">
             <h1 class="text-2xl font-bold text-gray-800">Condomínio Água Marinha</h1>
-            <p class="text-gray-500 text-sm">Cadastro de Notificação de Encomendas</p>
+            <p class="text-gray-500 text-sm">Atualize seus dados de contato</p>
         </div>
 
-        <form id="formCadastro" class="space-y-5">
+        <form id="formCadastro" class="space-y-4">
             <div>
                 <label class="block text-xs font-bold text-gray-700 uppercase mb-1">Nome Completo</label>
-                <input type="text" id="nome" placeholder="Ex: JOÃO SILVA" required 
-                    class="w-full border border-gray-300 rounded-lg p-3 focus:outline-none focus:ring-2 focus:ring-blue-500">
+                <input type="text" id="nome" placeholder="NOME DO MORADOR" required 
+                    class="w-full border border-gray-300 rounded-lg p-3 focus:ring-2 focus:ring-blue-500 outline-none">
             </div>
 
-            <div>
-                <label class="block text-xs font-bold text-gray-700 uppercase mb-1">Sua Unidade</label>
-                <select id="unidade" required 
-                    class="w-full border border-gray-300 rounded-lg p-3 focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white">
-                    <option value="">Selecione seu apartamento...</option>
-                    <script>
-                        // Gerando as unidades automaticamente de 02 a 45 como no seu CSV
-                        const aptos = ['02', '03', '04', '05', '11', '12', '13', '14', '15', '21', '22', '23', '24', '25', '31', '32', '33', '34', '35', '41', '42', '43', '44', '45'];
-                        aptos.forEach(a => {
-                            document.write(`<option value="${a}">Apartamento ${a}</option>`);
-                        });
-                    </script>
-                </select>
+            <div class="grid grid-cols-2 gap-4">
+                <div>
+                    <label class="block text-xs font-bold text-gray-700 uppercase mb-1">Bloco</label>
+                    <input type="text" id="bloco" placeholder="Ex: A" required 
+                        class="w-full border border-gray-300 rounded-lg p-3 focus:ring-2 focus:ring-blue-500 outline-none uppercase">
+                </div>
+                <div>
+                    <label class="block text-xs font-bold text-gray-700 uppercase mb-1">Apartamento</label>
+                    <input type="text" id="apto" placeholder="Ex: 12" required 
+                        class="w-full border border-gray-300 rounded-lg p-3 focus:ring-2 focus:ring-blue-500 outline-none">
+                </div>
             </div>
 
             <div>
                 <label class="block text-xs font-bold text-gray-700 uppercase mb-1">WhatsApp (com DDD)</label>
                 <input type="text" id="whatsapp" placeholder="(11) 99999-9999" required 
-                    class="w-full border border-gray-300 rounded-lg p-3 focus:outline-none focus:ring-2 focus:ring-blue-500">
+                    class="w-full border border-gray-300 rounded-lg p-3 focus:ring-2 focus:ring-blue-500 outline-none">
             </div>
 
             <button type="submit" id="btnAcao" class="w-full bg-blue-600 text-white py-4 rounded-lg font-bold hover:bg-blue-700 transition shadow-md">
-                SALVAR MEUS DADOS
+                SALVAR / SOBRESCREVER
             </button>
         </form>
 
         <div id="status" class="mt-6 text-center p-3 rounded-lg hidden text-sm font-semibold"></div>
 
         <div class="mt-8 text-center border-t pt-4">
-            <a href="index.html" class="text-xs text-gray-400 hover:text-blue-600 transition uppercase font-bold tracking-widest">Sair / Voltar</a>
+            <a href="index.html" class="text-xs text-gray-400 hover:text-blue-600 transition uppercase font-bold tracking-widest">Sair</a>
         </div>
     </div>
 
     <script>
-        // CREDENCIAIS JÁ CONFIGURADAS
         const supabaseUrl = 'https://ivmllxtmbtxpgasididp.supabase.co';
-        const supabaseKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Iml2bWxseHRtYnR4cGdhc2lkaWRwIiwicm9sZSI6ImFub24iLCJpYXQiOjE3MDQ0Njg4MDAsImV4cCI6MjAyMDAyNDgwMH0.8_98vOa-H8o4-xO7zJ_qV6m8hK8k0Z5_l7N7N7N7N7M'; // Usei a chave anônima do projeto
+        const supabaseKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Iml2bWxseHRtYnR4cGdhc2lkaWRwIiwicm9sZSI6ImFub24iLCJpYXQiOjE3MDQ0Njg4MDAsImV4cCI6MjAyMDAyNDgwMH0.8_98vOa-H8o4-xO7zJ_qV6m8hK8k0Z5_l7N7N7N7N7M';
         const supabaseClient = supabase.createClient(supabaseUrl, supabaseKey);
 
-        const form = document.getElementById('formCadastro');
-        const statusDiv = document.getElementById('status');
+        // Senha para acessar o formulário
+        function verificarSenha() {
+            const senha = document.getElementById('senhaAcesso').value;
+            if(senha === 'morador2026') { // Mude aqui se quiser outra senha
+                document.getElementById('telaSenha').classList.add('hidden');
+                document.getElementById('formContainer').classList.remove('hidden');
+            } else {
+                alert('Senha incorreta!');
+            }
+        }
 
-        form.addEventListener('submit', async (e) => {
+        document.getElementById('formCadastro').addEventListener('submit', async (e) => {
             e.preventDefault();
             const btn = document.getElementById('btnAcao');
+            const statusDiv = document.getElementById('status');
+            
             btn.disabled = true;
             btn.innerText = "PROCESSANDO...";
 
             const nome = document.getElementById('nome').value.toUpperCase().trim();
-            const unidade = document.getElementById('unidade').value;
+            const bloco = document.getElementById('bloco').value.toUpperCase().trim();
+            const apto = document.getElementById('apto').value.trim();
+            const identificadorUnico = `${apto} Bloco ${bloco}`; // Formato: 12 Bloco A
+            
             let tel = document.getElementById('whatsapp').value.replace(/\D/g, '');
 
             if (tel.length < 10) {
-                alert("Por favor, insira o número completo com DDD.");
+                alert("Insira o WhatsApp com DDD.");
                 btn.disabled = false;
-                btn.innerText = "SALVAR MEUS DADOS";
+                btn.innerText = "SALVAR / SOBRESCREVER";
                 return;
             }
             if (!tel.startsWith('55')) tel = '55' + tel;
 
             try {
-                // Verificar se a unidade já existe
-                const { data: existente, error: searchError } = await supabaseClient
+                // Verificar se já existe esse Bloco/Apto
+                const { data: existente } = await supabaseClient
                     .from('moradores')
                     .select('*')
-                    .eq('bloco_apartamento', unidade)
+                    .eq('bloco_apartamento', identificadorUnico)
                     .maybeSingle();
 
-                let proceed = true;
+                let confirmar = true;
                 if (existente) {
-                    proceed = confirm(`O Apartamento ${unidade} já está cadastrado para ${existente.nome}. Deseja substituir pelo seu nome e telefone?`);
+                    confirmar = confirm(`A unidade ${identificadorUnico} já está registrada para ${existente.nome}. Deseja sobrescrever os dados?`);
                 }
 
-                if (proceed) {
+                if (confirmar) {
                     const { error } = await supabaseClient
                         .from('moradores')
                         .upsert({ 
-                            bloco_apartamento: unidade, 
+                            bloco_apartamento: identificadorUnico, 
                             nome: nome, 
                             whatsapp: tel 
                         }, { onConflict: 'bloco_apartamento' });
@@ -108,16 +127,14 @@
 
                     statusDiv.innerText = "✅ DADOS ATUALIZADOS COM SUCESSO!";
                     statusDiv.className = "mt-6 text-center p-3 rounded-lg bg-green-100 text-green-800 block";
-                    form.reset();
+                    document.getElementById('formCadastro').reset();
                 }
-
             } catch (err) {
-                console.error(err);
                 statusDiv.innerText = "❌ ERRO AO SALVAR. TENTE NOVAMENTE.";
                 statusDiv.className = "mt-6 text-center p-3 rounded-lg bg-red-100 text-red-800 block";
             } finally {
                 btn.disabled = false;
-                btn.innerText = "SALVAR MEUS DADOS";
+                btn.innerText = "SALVAR / SOBRESCREVER";
             }
         });
     </script>
