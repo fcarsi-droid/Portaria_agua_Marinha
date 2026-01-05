@@ -7,36 +7,36 @@
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://unpkg.com/@supabase/supabase-js@2"></script>
 </head>
-<body class="bg-gray-100 min-h-screen flex items-center justify-center p-4">
+<body class="bg-gray-100 min-h-screen flex items-center justify-center p-4 text-gray-800 font-sans">
 
     <div id="divSenha" class="max-w-md w-full bg-white p-8 rounded-xl shadow-lg border-t-8 border-gray-800 text-center">
-        <h2 class="text-xl font-bold mb-4 uppercase">Acesso Morador</h2>
+        <h2 class="text-xl font-bold mb-4 uppercase tracking-tight">Acesso Morador</h2>
         <input type="password" id="inputSenha" placeholder="Senha do Condomínio" class="w-full border p-3 rounded mb-4 text-center outline-none focus:ring-2 focus:ring-blue-500 font-bold">
-        <button onclick="acessar()" class="w-full bg-gray-800 text-white py-3 rounded font-bold hover:bg-black transition">ENTRAR</button>
+        <button onclick="acessar()" class="w-full bg-gray-800 text-white py-3 rounded font-bold hover:bg-black transition duration-300">ENTRAR</button>
     </div>
 
     <div id="divForm" class="max-w-md w-full bg-white p-8 rounded-xl shadow-lg border-t-8 border-blue-600 hidden">
         <h1 class="text-2xl font-bold text-center mb-1">Água Marinha</h1>
-        <p class="text-center text-gray-400 text-xs mb-6 font-bold uppercase tracking-widest italic">Cadastro de Notificações</p>
+        <p class="text-center text-gray-400 text-xs mb-6 font-bold uppercase tracking-widest italic">Cadastro de Notificação</p>
 
         <form id="meuForm" class="space-y-4">
             <div>
-                <label class="block text-xs font-bold uppercase text-gray-600 italic">Nome Completo</label>
-                <input type="text" id="nome" required class="w-full border p-3 rounded outline-none focus:ring-2 focus:ring-blue-500 uppercase font-bold text-gray-700">
+                <label class="block text-xs font-bold uppercase text-gray-500 mb-1">Nome Completo</label>
+                <input type="text" id="nome" required class="w-full border border-gray-300 p-3 rounded outline-none focus:ring-2 focus:ring-blue-500 uppercase font-bold text-gray-700">
             </div>
 
             <div class="grid grid-cols-2 gap-4">
                 <div>
-                    <label class="block text-xs font-bold uppercase text-gray-600 italic">Bloco</label>
-                    <select id="bloco" required class="w-full border p-3 rounded outline-none focus:ring-2 focus:ring-blue-500 bg-white font-bold text-gray-700">
+                    <label class="block text-xs font-bold uppercase text-gray-500 mb-1">Bloco</label>
+                    <select id="bloco" required class="w-full border border-gray-300 p-3 rounded outline-none focus:ring-2 focus:ring-blue-500 bg-white font-bold text-gray-700">
                         <option value="">...</option>
                         <option value="A">A</option><option value="B">B</option><option value="C">C</option>
                         <option value="D">D</option><option value="E">E</option><option value="F">F</option>
                     </select>
                 </div>
                 <div>
-                    <label class="block text-xs font-bold uppercase text-gray-600 italic">Apartamento</label>
-                    <select id="apto" required class="w-full border p-3 rounded outline-none focus:ring-2 focus:ring-blue-500 bg-white font-bold text-gray-700">
+                    <label class="block text-xs font-bold uppercase text-gray-500 mb-1">Apartamento</label>
+                    <select id="apto" required class="w-full border border-gray-300 p-3 rounded outline-none focus:ring-2 focus:ring-blue-500 bg-white font-bold text-gray-700">
                         <option value="">...</option>
                         <script>
                             for(let i=1; i<=74; i++) {
@@ -49,17 +49,30 @@
             </div>
 
             <div>
-                <label class="block text-xs font-bold uppercase text-gray-600 italic">WhatsApp (com DDD)</label>
-                <input type="text" id="whatsapp" placeholder="(19) 99999-9999" required class="w-full border p-3 rounded outline-none focus:ring-2 focus:ring-blue-500 font-bold text-gray-700">
+                <label class="block text-xs font-bold uppercase text-gray-500 mb-1">WhatsApp (com DDD)</label>
+                <input type="text" id="whatsapp" placeholder="(19) 99999-9999" required class="w-full border border-gray-300 p-3 rounded outline-none focus:ring-2 focus:ring-blue-500 font-bold text-gray-700">
             </div>
 
-            <button type="submit" id="btn" class="w-full bg-blue-600 text-white py-4 rounded font-bold hover:bg-blue-700 shadow-md uppercase tracking-wider">SALVAR / ATUALIZAR</button>
+            <button type="button" onclick="abrirConfirmacao()" class="w-full bg-blue-600 text-white py-4 rounded font-bold hover:bg-blue-700 shadow-md uppercase tracking-wide">CADASTRAR</button>
         </form>
 
-        <div id="status" class="mt-4 text-center p-3 rounded hidden font-bold text-sm border-2"></div>
+        <div id="status" class="mt-4 text-center p-4 rounded hidden font-bold text-sm border-2 leading-relaxed"></div>
         
         <div class="mt-8 text-center border-t pt-4">
-            <a href="index.html" class="text-xs text-gray-400 font-bold uppercase hover:text-blue-600 transition">Voltar</a>
+            <a href="index.html" class="text-xs text-gray-400 font-bold uppercase hover:text-blue-600 transition">Voltar ao Início</a>
+        </div>
+    </div>
+
+    <div id="modalConfirmacao" class="fixed inset-0 flex items-center justify-center z-50 hidden px-4">
+        <div class="absolute inset-0 bg-black opacity-60"></div>
+        <div class="bg-white rounded-xl shadow-2xl p-6 z-50 max-w-sm w-full">
+            <h3 class="text-lg font-bold mb-4 border-b pb-2 text-blue-600 uppercase tracking-tighter">Confirme seus Dados</h3>
+            <div id="dadosResumo" class="text-sm space-y-3 mb-8 text-gray-700">
+                </div>
+            <div class="flex gap-3">
+                <button onclick="fecharModal()" class="flex-1 bg-gray-100 py-3 rounded-lg font-bold text-gray-500 hover:bg-gray-200">CORRIGIR</button>
+                <button id="btnFinal" onclick="salvarCadastro()" class="flex-1 bg-green-600 py-3 rounded-lg font-bold text-white hover:bg-green-700">CONFIRMAR</button>
+            </div>
         </div>
     </div>
 
@@ -75,39 +88,74 @@
             } else { alert('Senha incorreta!'); }
         }
 
-        document.getElementById('meuForm').addEventListener('submit', async (e) => {
-            e.preventDefault();
-            const btn = document.getElementById('btn');
-            const status = document.getElementById('status');
-            btn.disabled = true; btn.innerText = "GRAVANDO...";
+        function abrirConfirmacao() {
+            const nome = document.getElementById('nome').value.toUpperCase().trim();
+            const bloco = document.getElementById('bloco').value;
+            const apto = document.getElementById('apto').value;
+            const zap = document.getElementById('whatsapp').value;
 
+            if(!nome || !bloco || !apto || !zap) {
+                alert("Por favor, preencha todos os campos corretamente.");
+                return;
+            }
+
+            document.getElementById('dadosResumo').innerHTML = `
+                <div class="bg-gray-50 p-3 rounded border">
+                    <p><span class="text-gray-400 font-bold uppercase text-[10px]">Nome:</span><br> <span class="font-bold">${nome}</span></p>
+                    <p class="mt-2"><span class="text-gray-400 font-bold uppercase text-[10px]">Local:</span><br> <span class="font-bold">${apto} Bloco ${bloco}</span></p>
+                    <p class="mt-2"><span class="text-gray-400 font-bold uppercase text-[10px]">WhatsApp:</span><br> <span class="font-bold">${zap}</span></p>
+                </div>
+                <p class="text-xs text-orange-600 font-semibold mt-4 text-center">Verifique se o número do WhatsApp está correto para receber os avisos.</p>
+            `;
+            document.getElementById('modalConfirmacao').classList.remove('hidden');
+        }
+
+        function fecharModal() {
+            document.getElementById('modalConfirmacao').classList.add('hidden');
+        }
+
+        async function salvarCadastro() {
+            const btn = document.getElementById('btnFinal');
+            const status = document.getElementById('status');
+            const bloco = document.getElementById('bloco').value;
+            const apto = document.getElementById('apto').value;
+            const nome = document.getElementById('nome').value.toUpperCase().trim();
             let tel = document.getElementById('whatsapp').value.replace(/\D/g, '');
             if (!tel.startsWith('55')) tel = '55' + tel;
 
-            // DADOS PARA AS COLUNAS MINÚSCULAS
-            const dados = {
-                bloco: document.getElementById('bloco').value,
-                apartamento: document.getElementById('apto').value,
-                nome: document.getElementById('nome').value.toUpperCase().trim(),
-                whatsapp: tel
-            };
+            btn.disabled = true; btn.innerText = "...";
+            fecharModal();
+            status.classList.add('hidden');
 
             try {
-                // Upsert baseado nas colunas minúsculas
-                const { error } = await client.from('moradores').upsert(dados, { 
-                    onConflict: 'bloco,apartamento' 
-                });
+                // VERIFICA SE JÁ EXISTE NO BANCO
+                const { data: existe } = await client
+                    .from('moradores')
+                    .select('id')
+                    .eq('bloco', bloco)
+                    .eq('apartamento', apto)
+                    .maybeSingle();
 
-                if (error) throw error;
-                status.innerText = "✅ DADOS GRAVADOS COM SUCESSO!";
-                status.className = "mt-4 text-center p-3 rounded block bg-green-100 text-green-800 border-green-500 border-2";
-                document.getElementById('meuForm').reset();
+                if (existe) {
+                    status.innerHTML = `⚠️ Esse apartamento já possui um morador cadastrado. <br><br>Verifique se as informações estão corretas. Caso estejam, entrar em contato com o síndico para que seja verificado.`;
+                    status.className = "mt-4 text-center p-4 rounded block bg-yellow-50 text-yellow-800 border-yellow-400 border-2";
+                } else {
+                    const { error } = await client.from('moradores').insert([
+                        { bloco: bloco, apartamento: apto, nome: nome, whatsapp: tel }
+                    ]);
+                    if (error) throw error;
+
+                    status.innerText = "✅ CADASTRO REALIZADO COM SUCESSO!";
+                    status.className = "mt-4 text-center p-4 rounded block bg-green-50 text-green-800 border-green-500 border-2";
+                    document.getElementById('meuForm').reset();
+                }
             } catch (err) {
-                console.error(err);
-                status.innerText = "❌ ERRO AO SALVAR. RODE O SQL NO SUPABASE!";
-                status.className = "mt-4 text-center p-3 rounded block bg-red-100 text-red-800 border-red-500 border-2";
-            } finally { btn.disabled = false; btn.innerText = "SALVAR / ATUALIZAR"; }
-        });
+                status.innerText = "❌ Ocorreu um erro ao salvar. Tente novamente.";
+                status.className = "mt-4 text-center p-4 rounded block bg-red-50 text-red-800 border-red-500 border-2";
+            } finally {
+                btn.disabled = false; btn.innerText = "CONFIRMAR";
+            }
+        }
     </script>
 </body>
 </html>
