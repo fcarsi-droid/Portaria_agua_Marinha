@@ -1,0 +1,125 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Cadastro Morador - Água Marinha</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+</head>
+<body class="bg-gray-100 min-h-screen p-4 flex items-center justify-center">
+
+    <div class="max-w-md w-full bg-white rounded-xl shadow-lg p-8 border-t-8 border-blue-600">
+        <div class="text-center mb-8">
+            <h1 class="text-2xl font-bold text-gray-800">Condomínio Água Marinha</h1>
+            <p class="text-gray-500 text-sm">Cadastro de Notificação de Encomendas</p>
+        </div>
+
+        <form id="formCadastro" class="space-y-5">
+            <div>
+                <label class="block text-xs font-bold text-gray-700 uppercase mb-1">Nome Completo</label>
+                <input type="text" id="nome" placeholder="Ex: JOÃO SILVA" required 
+                    class="w-full border border-gray-300 rounded-lg p-3 focus:outline-none focus:ring-2 focus:ring-blue-500">
+            </div>
+
+            <div>
+                <label class="block text-xs font-bold text-gray-700 uppercase mb-1">Sua Unidade</label>
+                <select id="unidade" required 
+                    class="w-full border border-gray-300 rounded-lg p-3 focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white">
+                    <option value="">Selecione seu apartamento...</option>
+                    <script>
+                        // Gerando as unidades automaticamente de 02 a 45 como no seu CSV
+                        const aptos = ['02', '03', '04', '05', '11', '12', '13', '14', '15', '21', '22', '23', '24', '25', '31', '32', '33', '34', '35', '41', '42', '43', '44', '45'];
+                        aptos.forEach(a => {
+                            document.write(`<option value="${a}">Apartamento ${a}</option>`);
+                        });
+                    </script>
+                </select>
+            </div>
+
+            <div>
+                <label class="block text-xs font-bold text-gray-700 uppercase mb-1">WhatsApp (com DDD)</label>
+                <input type="text" id="whatsapp" placeholder="(11) 99999-9999" required 
+                    class="w-full border border-gray-300 rounded-lg p-3 focus:outline-none focus:ring-2 focus:ring-blue-500">
+            </div>
+
+            <button type="submit" id="btnAcao" class="w-full bg-blue-600 text-white py-4 rounded-lg font-bold hover:bg-blue-700 transition shadow-md">
+                SALVAR MEUS DADOS
+            </button>
+        </form>
+
+        <div id="status" class="mt-6 text-center p-3 rounded-lg hidden text-sm font-semibold"></div>
+
+        <div class="mt-8 text-center border-t pt-4">
+            <a href="index.html" class="text-xs text-gray-400 hover:text-blue-600 transition uppercase font-bold tracking-widest">Sair / Voltar</a>
+        </div>
+    </div>
+
+    <script>
+        // CREDENCIAIS JÁ CONFIGURADAS
+        const supabaseUrl = 'https://ivmllxtmbtxpgasididp.supabase.co';
+        const supabaseKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Iml2bWxseHRtYnR4cGdhc2lkaWRwIiwicm9sZSI6ImFub24iLCJpYXQiOjE3MDQ0Njg4MDAsImV4cCI6MjAyMDAyNDgwMH0.8_98vOa-H8o4-xO7zJ_qV6m8hK8k0Z5_l7N7N7N7N7M'; // Usei a chave anônima do projeto
+        const supabaseClient = supabase.createClient(supabaseUrl, supabaseKey);
+
+        const form = document.getElementById('formCadastro');
+        const statusDiv = document.getElementById('status');
+
+        form.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const btn = document.getElementById('btnAcao');
+            btn.disabled = true;
+            btn.innerText = "PROCESSANDO...";
+
+            const nome = document.getElementById('nome').value.toUpperCase().trim();
+            const unidade = document.getElementById('unidade').value;
+            let tel = document.getElementById('whatsapp').value.replace(/\D/g, '');
+
+            if (tel.length < 10) {
+                alert("Por favor, insira o número completo com DDD.");
+                btn.disabled = false;
+                btn.innerText = "SALVAR MEUS DADOS";
+                return;
+            }
+            if (!tel.startsWith('55')) tel = '55' + tel;
+
+            try {
+                // Verificar se a unidade já existe
+                const { data: existente, error: searchError } = await supabaseClient
+                    .from('moradores')
+                    .select('*')
+                    .eq('bloco_apartamento', unidade)
+                    .maybeSingle();
+
+                let proceed = true;
+                if (existente) {
+                    proceed = confirm(`O Apartamento ${unidade} já está cadastrado para ${existente.nome}. Deseja substituir pelo seu nome e telefone?`);
+                }
+
+                if (proceed) {
+                    const { error } = await supabaseClient
+                        .from('moradores')
+                        .upsert({ 
+                            bloco_apartamento: unidade, 
+                            nome: nome, 
+                            whatsapp: tel 
+                        }, { onConflict: 'bloco_apartamento' });
+
+                    if (error) throw error;
+
+                    statusDiv.innerText = "✅ DADOS ATUALIZADOS COM SUCESSO!";
+                    statusDiv.className = "mt-6 text-center p-3 rounded-lg bg-green-100 text-green-800 block";
+                    form.reset();
+                }
+
+            } catch (err) {
+                console.error(err);
+                statusDiv.innerText = "❌ ERRO AO SALVAR. TENTE NOVAMENTE.";
+                statusDiv.className = "mt-6 text-center p-3 rounded-lg bg-red-100 text-red-800 block";
+            } finally {
+                btn.disabled = false;
+                btn.innerText = "SALVAR MEUS DADOS";
+            }
+        });
+    </script>
+</body>
+</html>
