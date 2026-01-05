@@ -7,36 +7,36 @@
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://unpkg.com/@supabase/supabase-js@2"></script>
 </head>
-<body class="bg-gray-100 min-h-screen flex items-center justify-center p-4 text-gray-800">
+<body class="bg-gray-100 min-h-screen flex items-center justify-center p-4">
 
     <div id="divSenha" class="max-w-md w-full bg-white p-8 rounded-xl shadow-lg border-t-8 border-gray-800 text-center">
-        <h2 class="text-xl font-bold mb-4">Acesso Morador</h2>
-        <input type="password" id="inputSenha" placeholder="Senha do Condomínio" class="w-full border p-3 rounded mb-4 text-center outline-none focus:ring-2 focus:ring-blue-500">
+        <h2 class="text-xl font-bold mb-4 uppercase">Acesso Morador</h2>
+        <input type="password" id="inputSenha" placeholder="Senha do Condomínio" class="w-full border p-3 rounded mb-4 text-center outline-none focus:ring-2 focus:ring-blue-500 font-bold">
         <button onclick="acessar()" class="w-full bg-gray-800 text-white py-3 rounded font-bold hover:bg-black transition">ENTRAR</button>
     </div>
 
     <div id="divForm" class="max-w-md w-full bg-white p-8 rounded-xl shadow-lg border-t-8 border-blue-600 hidden">
-        <h1 class="text-2xl font-bold text-center mb-2 italic">Água Marinha</h1>
-        <p class="text-center text-gray-500 text-sm mb-6 font-bold uppercase tracking-widest">Cadastro de Notificações</p>
+        <h1 class="text-2xl font-bold text-center mb-1">Água Marinha</h1>
+        <p class="text-center text-gray-400 text-xs mb-6 font-bold uppercase tracking-widest italic">Cadastro de Notificações</p>
 
         <form id="meuForm" class="space-y-4">
             <div>
-                <label class="block text-xs font-bold uppercase italic">Nome Completo</label>
-                <input type="text" id="nome" required class="w-full border p-3 rounded outline-none focus:ring-2 focus:ring-blue-500 uppercase font-semibold">
+                <label class="block text-xs font-bold uppercase text-gray-600 italic">Nome Completo</label>
+                <input type="text" id="nome" required class="w-full border p-3 rounded outline-none focus:ring-2 focus:ring-blue-500 uppercase font-bold text-gray-700">
             </div>
 
             <div class="grid grid-cols-2 gap-4">
                 <div>
-                    <label class="block text-xs font-bold uppercase italic">Bloco</label>
-                    <select id="bloco" required class="w-full border p-3 rounded outline-none focus:ring-2 focus:ring-blue-500 bg-white font-semibold">
+                    <label class="block text-xs font-bold uppercase text-gray-600 italic">Bloco</label>
+                    <select id="bloco" required class="w-full border p-3 rounded outline-none focus:ring-2 focus:ring-blue-500 bg-white font-bold text-gray-700">
                         <option value="">...</option>
                         <option value="A">A</option><option value="B">B</option><option value="C">C</option>
                         <option value="D">D</option><option value="E">E</option><option value="F">F</option>
                     </select>
                 </div>
                 <div>
-                    <label class="block text-xs font-bold uppercase italic">Apartamento</label>
-                    <select id="apto" required class="w-full border p-3 rounded outline-none focus:ring-2 focus:ring-blue-500 bg-white font-semibold">
+                    <label class="block text-xs font-bold uppercase text-gray-600 italic">Apartamento</label>
+                    <select id="apto" required class="w-full border p-3 rounded outline-none focus:ring-2 focus:ring-blue-500 bg-white font-bold text-gray-700">
                         <option value="">...</option>
                         <script>
                             for(let i=1; i<=74; i++) {
@@ -49,16 +49,17 @@
             </div>
 
             <div>
-                <label class="block text-xs font-bold uppercase italic">WhatsApp (com DDD)</label>
-                <input type="text" id="whatsapp" placeholder="(19) 99999-9999" required class="w-full border p-3 rounded outline-none focus:ring-2 focus:ring-blue-500 font-semibold">
+                <label class="block text-xs font-bold uppercase text-gray-600 italic">WhatsApp (com DDD)</label>
+                <input type="text" id="whatsapp" placeholder="(19) 99999-9999" required class="w-full border p-3 rounded outline-none focus:ring-2 focus:ring-blue-500 font-bold text-gray-700">
             </div>
 
-            <button type="submit" id="btn" class="w-full bg-blue-600 text-white py-4 rounded font-bold hover:bg-blue-700 shadow-md uppercase">SALVAR / ATUALIZAR</button>
+            <button type="submit" id="btn" class="w-full bg-blue-600 text-white py-4 rounded font-bold hover:bg-blue-700 shadow-md uppercase tracking-wider">SALVAR / ATUALIZAR</button>
         </form>
 
         <div id="status" class="mt-4 text-center p-3 rounded hidden font-bold text-sm border-2"></div>
+        
         <div class="mt-8 text-center border-t pt-4">
-            <a href="index.html" class="text-xs text-gray-400 font-bold uppercase hover:text-blue-600">Sair</a>
+            <a href="index.html" class="text-xs text-gray-400 font-bold uppercase hover:text-blue-600 transition">Voltar</a>
         </div>
     </div>
 
@@ -83,6 +84,7 @@
             let tel = document.getElementById('whatsapp').value.replace(/\D/g, '');
             if (!tel.startsWith('55')) tel = '55' + tel;
 
+            // DADOS PARA AS COLUNAS MINÚSCULAS
             const dados = {
                 bloco: document.getElementById('bloco').value,
                 apartamento: document.getElementById('apto').value,
@@ -91,6 +93,7 @@
             };
 
             try {
+                // Upsert baseado nas colunas minúsculas
                 const { error } = await client.from('moradores').upsert(dados, { 
                     onConflict: 'bloco,apartamento' 
                 });
