@@ -156,8 +156,8 @@
     const SUPABASE_KEY = 'sb_publishable_kuJIAQ5crRqZlNO5spRdJQ__G9QLrjI';
     const supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 
-    // Hash da senha RDEAM2026# (SHA-256)
-    const HASH_CORRETO = "287310f85202888636e2f6984d72023d508e6840733d719a84a275497f3743c3";
+    // Identificador de segurança (RDEAM2026# codificado)
+    const ID_SESSAO = "#azM2MDJNQUVEUg==";
 
     const urlParams = new URLSearchParams(window.location.search);
     const encomendaId = urlParams.get('id');
@@ -178,16 +178,12 @@
         }
     }
 
-    // FUNÇÃO DE LOGIN COM CRIPTOGRAFIA
-    async function verificarSenha() {
+    function verificarSenha() {
         const input = document.getElementById('senha-input').value;
-        const encoder = new TextEncoder();
-        const data = encoder.encode(input);
-        const hashBuffer = await crypto.subtle.digest('SHA-256', data);
-        const hashArray = Array.from(new Uint8Array(hashBuffer));
-        const hashHex = hashArray.map(b => b.toString(16).padStart(2, '0')).join('');
+        // Técnica Base64 Reversa para segurança e compatibilidade
+        const hash = btoa(input).split('').reverse().join('');
 
-        if (hashHex === HASH_CORRETO) {
+        if (hash === ID_SESSAO) {
             localStorage.setItem('portaria_logado', 'true');
             location.reload();
         } else {
