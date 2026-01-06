@@ -3,19 +3,92 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Portaria Água Marinha</title>
+    <title>Sistema Água Marinha</title>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <style>
-        :root { --navy: #1e293b; --navy-dark: #0f172a; --blue-action: #00b4d8; --green-success: #22c55e; --bg-gray: #f8fafc; }
-        body { font-family: 'Segoe UI', sans-serif; background-color: var(--bg-gray); padding: 15px; display: flex; flex-direction: column; align-items: center; color: #334155; }
-        .card { background: white; border: 2px solid #e2e8f0; padding: 24px; border-radius: 16px; box-shadow: 0 4px 6px -1px rgb(0 0 0 / 0.1); width: 100%; max-width: 450px; margin-bottom: 20px; }
-        h1 { text-transform: uppercase; font-weight: 800; margin-top: 0; color: var(--navy); font-style: italic; }
-        label { display: block; margin-top: 15px; font-size: 0.75rem; font-weight: 700; text-transform: uppercase; color: #64748b; }
-        select, input { width: 100%; padding: 12px; margin-top: 5px; border: 1px solid #cbd5e1; border-radius: 8px; font-size: 1rem; }
-        .btn-principal { width: 100%; background-color: var(--navy); color: white; padding: 18px; margin-top: 25px; border: none; border-bottom: 4px solid #020617; border-radius: 12px; font-weight: 800; text-transform: uppercase; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 10px; }
+        :root { 
+            --navy: #1e293b; 
+            --navy-dark: #0f172a; 
+            --blue-action: #00b4d8; 
+            --green-success: #22c55e; 
+            --bg-gray: #f8fafc;
+            --text-main: #334155;
+        }
+        
+        body { 
+            font-family: 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; 
+            background-color: var(--bg-gray); 
+            padding: 15px; 
+            display: flex; 
+            flex-direction: column; 
+            align-items: center; 
+            color: var(--text-main);
+        }
+
+        .card { 
+            background: white; 
+            border: 2px solid #e2e8f0; 
+            padding: 30px; 
+            border-radius: 20px;
+            box-shadow: 0 10px 15px -3px rgba(0,0,0,0.1); 
+            width: 100%; 
+            max-width: 450px; 
+            margin-top: 20px;
+            text-align: center;
+        }
+
+        h1, h2 { 
+            text-transform: uppercase; 
+            font-weight: 900;
+            margin-top: 0; 
+            color: var(--navy);
+            font-style: italic;
+            font-size: 1.4rem;
+        }
+
+        label { display: block; margin-top: 15px; font-size: 0.75rem; font-weight: 700; text-transform: uppercase; color: #64748b; text-align: left; }
+        select, input { width: 100%; padding: 12px; margin-top: 5px; border: 1px solid #cbd5e1; border-radius: 8px; font-size: 1rem; box-sizing: border-box; }
+
+        .btn-principal {
+            width: 100%;
+            background-color: var(--navy);
+            color: white;
+            padding: 18px;
+            margin-top: 20px;
+            border: none;
+            border-bottom: 4px solid #020617;
+            border-radius: 12px;
+            font-weight: 800;
+            text-transform: uppercase;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+            transition: all 0.2s;
+        }
+
         .btn-principal:active { border-bottom-width: 0; transform: translateY(4px); }
-        .item-pendente { border-bottom: 1px solid #f1f5f9; padding: 12px 0; display: flex; justify-content: space-between; align-items: center; }
-        .btn-baixa { background: var(--green-success); color: white; border: none; padding: 8px 12px; border-radius: 6px; font-weight: bold; cursor: pointer; }
+        .btn-green { background-color: var(--green-success); border-bottom-color: #166534; }
+
+        .item-pendente { 
+            border-bottom: 1px solid #f1f5f9; 
+            padding: 12px 0; 
+            display: flex; 
+            justify-content: space-between; 
+            align-items: center; 
+            text-align: left;
+        }
+
+        .aviso-seguranca {
+            font-size: 0.85rem;
+            color: #64748b;
+            margin-top: 25px;
+            padding-top: 20px;
+            border-top: 1px solid #f1f5f9;
+            line-height: 1.4;
+        }
+
         .hidden { display: none !important; }
     </style>
 </head>
@@ -23,34 +96,52 @@
 
     <div id="login-screen" class="card hidden">
         <h1>Acesso Restrito</h1>
-        <p>Digite a senha da portaria:</p>
+        <p>Credencial de Segurança da Portaria:</p>
         <input type="password" id="senha-input" placeholder="••••••••">
         <button class="btn-principal" onclick="verificarSenha()">Entrar no Sistema</button>
+        <a href="index.html" style="display:block; margin-top:15px; font-size:0.8rem; color:var(--blue-action); text-decoration:none;">Voltar ao Início</a>
     </div>
 
     <div id="visao-morador" class="card hidden">
-        <h1>Confirmar Retirada</h1>
-        <p id="detalhe-encomenda">Buscando detalhes...</p>
-        <button id="btn-confirmar" class="btn-principal" style="background: var(--green-success);" onclick="confirmarPeloMorador()">📦 CONFIRMAR RECEBIMENTO</button>
+        <div id="conteudo-pendente">
+            <h1>CONFIRMAR RECEBIMENTO</h1>
+            <p id="detalhe-encomenda" style="margin: 20px 0; font-size: 1.1rem; line-height: 1.6;">Buscando informações...</p>
+            <button class="btn-principal btn-green" onclick="confirmarPeloMorador()">
+                <svg width="20" height="20" fill="currentColor" viewBox="0 0 16 16"><path d="M12.354 4.354a.5.5 0 0 0-.708-.708L5 10.293 1.854 7.146a.5.5 0 1 0-.708.708l3.5 3.5a.5.5 0 0 0 .708 0l7-7z"/></svg>
+                REGISTRAR RETIRADA
+            </button>
+            <p class="aviso-seguranca">Esta ação confirma o recebimento dos volumes na portaria.</p>
+        </div>
+        
+        <div id="conteudo-sucesso" class="hidden">
+            <h1 style="color: var(--green-success);">✅ PROTOCOLO FINALIZADO</h1>
+            <p style="line-height: 1.6; margin: 20px 0; font-size: 1.1rem;">
+                Obrigado por confirmar o recebimento! <br><br>
+                Esta ação nos ajuda a transformar o nosso condomínio em um lugar <b>mais seguro e organizado.</b>
+            </p>
+            <div class="aviso-seguranca" style="text-align: left; background: #f8fafc; padding: 15px; border-radius: 10px;">
+                <b>Atenção:</b> Caso tenha confirmado o recebimento por acidente, entre em contato com a portaria solicitando que o porteiro envie um novo link para a retirada.
+            </div>
+        </div>
     </div>
 
-    <div id="visao-porteiro" class="hidden">
+    <div id="visao-porteiro" class="hidden" style="width: 100%; max-width: 450px;">
         <div class="card">
             <h1>📦 Registro de Entrada</h1>
             <label>Bloco</label>
             <select id="bloco" onchange="filtrarApartamentos()"><option value="">Carregando...</option></select>
             <label>Apartamento / Morador</label>
             <select id="apartamento"><option value="">Selecione o Bloco...</option></select>
-            <label>Volumes</label>
+            <label>Volumes Recebidos</label>
             <input type="number" id="qtd" value="1" min="1">
             <button class="btn-principal" onclick="registrar()">CONFIRMAR REGISTRO E ENVIAR ALERTA</button>
         </div>
 
         <div class="card">
             <h2>🚚 Aguardando Retirada</h2>
-            <div id="lista-pendentes">Carregando...</div>
-            <button class="btn-principal" style="background: var(--blue-action);" onclick="exportarDados()">📊 Gerar Relatório CSV</button>
-            <button class="btn-principal" style="background: #94a3b8;" onclick="logout()">Sair do Sistema</button>
+            <div id="lista-pendentes" style="margin-top: 15px;">Carregando...</div>
+            <button class="btn-principal" style="background: var(--blue-action); border-bottom-color: #0077b6;" onclick="exportarDados()">📊 GERAR RELATÓRIO CSV</button>
+            <button class="btn-principal" style="background: #94a3b8; border-bottom-color: #475569; font-size: 0.7rem;" onclick="logout()">SAIR / BLOQUEAR SISTEMA</button>
         </div>
     </div>
 
@@ -58,14 +149,12 @@
     const SUPABASE_URL = 'https://esegzalccqvoypdpencs.supabase.co';
     const SUPABASE_KEY = 'sb_publishable_kuJIAQ5crRqZlNO5spRdJQ__G9QLrjI';
     const supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
-
-    // SENHA DIRETA PARA NÃO DAR ERRO
     const SENHA_CORRETA = "RDEAM2026#";
 
     const urlParams = new URLSearchParams(window.location.search);
     const encomendaId = urlParams.get('id');
 
-    function inicializar() {
+    async function inicializar() {
         if (encomendaId) {
             exibirVisaoMorador();
         } else {
@@ -78,18 +167,36 @@
     }
 
     function verificarSenha() {
-        const input = document.getElementById('senha-input').value.trim();
-        if (input === SENHA_CORRETA) {
+        if (document.getElementById('senha-input').value.trim() === SENHA_CORRETA) {
             localStorage.setItem('portaria_logado', 'true');
             location.reload();
+        } else { alert("Credencial Incorreta!"); }
+    }
+
+    function logout() { localStorage.removeItem('portaria_logado'); location.reload(); }
+
+    async function exibirVisaoMorador() {
+        document.getElementById('visao-morador').classList.remove('hidden');
+        const { data } = await supabaseClient.from('encomendas').select('quantidade, status, moradores(nome, bloco, apartamento)').eq('id', encomendaId).single();
+        if (data) {
+            if (data.status === 'ENTREGUE') { 
+                mostrarSucesso(); 
+            } else { 
+                document.getElementById('detalhe-encomenda').innerHTML = `Prezado(a) <b>${data.moradores.nome}</b>, por favor, confirme a retirada de <b>${data.quantidade} volume(s)</b>.<br>Unidade: Bloco ${data.moradores.bloco} - Apto ${data.moradores.apartamento}.`; 
+            }
         } else {
-            alert("Senha Incorreta!");
+            document.getElementById('detalhe-encomenda').innerText = "Registro não encontrado.";
         }
     }
 
-    function logout() {
-        localStorage.removeItem('portaria_logado');
-        location.reload();
+    async function confirmarPeloMorador() {
+        const { error } = await supabaseClient.from('encomendas').update({ status: 'ENTREGUE' }).eq('id', encomendaId);
+        if (!error) { mostrarSucesso(); }
+    }
+
+    function mostrarSucesso() {
+        document.getElementById('conteudo-pendente').classList.add('hidden');
+        document.getElementById('conteudo-sucesso').classList.remove('hidden');
     }
 
     async function exibirVisaoPorteiro() {
@@ -99,7 +206,7 @@
         const blocos = [...new Set(data.map(m => m.bloco))];
         const select = document.getElementById('bloco');
         select.innerHTML = '<option value="">Bloco</option>';
-        blocos.forEach(b => select.innerHTML += `<option value="${b}">${b}</option>`);
+        blocos.forEach(b => select.innerHTML += `<option value="${b}">Bloco ${b}</option>`);
         carregarPendencias();
     }
 
@@ -113,11 +220,11 @@
     }
 
     async function carregarPendencias() {
-        const { data } = await supabaseClient.from('encomendas').select('id, quantidade, moradores(nome, bloco, apartamento)').eq('status', 'DISPONÍVEL');
+        const { data } = await supabaseClient.from('encomendas').select('id, quantidade, moradores(nome, bloco, apartamento)').eq('status', 'DISPONÍVEL').order('criado_em', {ascending: false});
         const container = document.getElementById('lista-pendentes');
-        container.innerHTML = data.length === 0 ? "Tudo entregue!" : "";
+        container.innerHTML = data.length === 0 ? "<p style='color:#94a3b8; font-size:0.8rem;'>Nenhuma encomenda aguardando retirada.</p>" : "";
         data.forEach(item => {
-            container.innerHTML += `<div class="item-pendente"><div><b>${item.moradores.bloco}-${item.moradores.apartamento}</b><br><small>${item.moradores.nome}</small></div><button class="btn-baixa" onclick="darBaixa('${item.id}')">BAIXA</button></div>`;
+            container.innerHTML += `<div class="item-pendente"><div><b>${item.moradores.bloco}-${item.moradores.apartamento}</b><br><small>${item.moradores.nome}</small></div><button onclick="darBaixa('${item.id}')" style="background:var(--green-success); color:white; border:none; padding:8px 12px; border-radius:8px; font-weight:bold; cursor:pointer;">BAIXA</button></div>`;
         });
     }
 
@@ -129,37 +236,28 @@
         if(!error) {
             const m = window.moradoresGlobal.find(mor => mor.id == id);
             const link = `${window.location.origin}${window.location.pathname}?id=${data[0].id}`;
-            const msg = window.encodeURIComponent(`📦 *PORTARIA:* Olá ${m.nome}, chegou sua encomenda (${qtd} vol).\nConfirme a retirada: ${link}`);
+            const msg = window.encodeURIComponent(`📦 *CONDOMÍNIO ÁGUA MARINHA*\n\nOlá *${m.nome}*,\nInformamos que chegou *${qtd} volume(s)* para sua unidade.\n\nRetire na portaria e confirme no link abaixo:\n👉 ${link}`);
             window.open(`https://wa.me/${m.whatsapp}?text=${msg}`, '_blank');
             location.reload();
         }
     }
 
     async function darBaixa(id) {
-        if(confirm("Baixa manual?")) {
+        if(confirm("Confirmar baixa manual desta encomenda?")) {
             await supabaseClient.from('encomendas').update({ status: 'ENTREGUE' }).eq('id', id);
             location.reload();
         }
     }
 
-    async function exibirVisaoMorador() {
-        document.getElementById('visao-morador').classList.remove('hidden');
-        const { data } = await supabaseClient.from('encomendas').select('quantidade, status, moradores(nome, bloco, apartamento)').eq('id', encomendaId).single();
-        if (data) {
-            if (data.status === 'ENTREGUE') {
-                document.getElementById('visao-morador').innerHTML = "<h1>✅ Já Entregue</h1>";
-            } else {
-                document.getElementById('detalhe-encomenda').innerText = `${data.moradores.nome}, confirme a retirada de ${data.quantidade} volume(s).`;
-            }
-        }
+    async function exportarDados() {
+        const { data } = await supabaseClient.from('encomendas').select('status, quantidade, criado_em, moradores(nome, bloco, apartamento)');
+        let csv = "Data;Bloco;Apto;Nome;Qtd;Status\n";
+        data.forEach(row => { csv += `${new Date(row.criado_em).toLocaleDateString()};${row.moradores.bloco};${row.moradores.apartamento};${row.moradores.nome};${row.quantidade};${row.status}\n`; });
+        const blob = new Blob([csv], { type: 'text/csv' });
+        const url = window.URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url; a.download = `relatorio_agua_marinha_${new Date().toLocaleDateString()}.csv`; a.click();
     }
-
-    async function confirmarPeloMorador() {
-        await supabaseClient.from('encomendas').update({ status: 'ENTREGUE' }).eq('id', encomendaId);
-        location.reload();
-    }
-
-    function exportarDados() { /* Lógica de CSV igual ao anterior */ }
 
     inicializar();
 </script>
