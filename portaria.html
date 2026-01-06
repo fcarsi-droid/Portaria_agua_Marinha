@@ -156,8 +156,8 @@
     const SUPABASE_KEY = 'sb_publishable_kuJIAQ5crRqZlNO5spRdJQ__G9QLrjI';
     const supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 
-    // Identificador de segurança (RDEAM2026# codificado)
-    const ID_SESSAO = "#azM2MDJNQUVEUg==";
+    // Chave de verificação universal (RDEAM2026#)
+    const CHAVE_SISTEMA = "82-68-69-65-77-50-48-50-54-35";
 
     const urlParams = new URLSearchParams(window.location.search);
     const encomendaId = urlParams.get('id');
@@ -178,12 +178,12 @@
         }
     }
 
+    // Função de verificação à prova de falhas de caracteres especiais
     function verificarSenha() {
         const input = document.getElementById('senha-input').value;
-        // Técnica Base64 Reversa para segurança e compatibilidade
-        const hash = btoa(input).split('').reverse().join('');
+        const codigoDigitado = input.split('').map(c => c.charCodeAt(0)).join('-');
 
-        if (hash === ID_SESSAO) {
+        if (codigoDigitado === CHAVE_SISTEMA) {
             localStorage.setItem('portaria_logado', 'true');
             location.reload();
         } else {
