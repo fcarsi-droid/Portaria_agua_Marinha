@@ -5,145 +5,860 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Sistema Água Marinha</title>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="https://cdn.sheetjs.com/xlsx-0.20.1/package/dist/xlsx.full.min.js"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
     <style>
-        :root { 
-            --navy: #1e293b; 
-            --navy-dark: #0f172a; 
-            --blue-action: #00b4d8; 
-            --green-success: #22c55e; 
-            --bg-gray: #f8fafc;
-            --text-main: #334155;
-        }
-        
-        body { 
-            font-family: 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; 
-            background-color: var(--bg-gray); 
-            padding: 15px; 
-            display: flex; 
-            flex-direction: column; 
-            align-items: center; 
-            color: var(--text-main);
+        :root {
+            --navy: #0f2236;
+            --navy-mid: #1e3a5f;
+            --blue: #0ea5e9;
+            --blue-dark: #0284c7;
+            --green: #10b981;
+            --green-dark: #059669;
+            --amber: #f59e0b;
+            --red: #ef4444;
+            --bg: #f1f5f9;
+            --surface: #ffffff;
+            --border: #e2e8f0;
+            --text: #1e293b;
+            --text-muted: #64748b;
+            --text-light: #94a3b8;
         }
 
-        .card { 
-            background: white; 
-            border: 2px solid #e2e8f0; 
-            padding: 30px; 
-            border-radius: 20px;
-            box-shadow: 0 10px 15px -3px rgba(0,0,0,0.1); 
-            width: 100%; 
-            max-width: 450px; 
-            margin-top: 20px;
+        * { margin: 0; padding: 0; box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+
+        body {
+            font-family: 'Plus Jakarta Sans', sans-serif;
+            background: var(--bg);
+            color: var(--text);
+            min-height: 100vh;
+        }
+
+        /* ══════════ LOGIN ══════════ */
+        #login-screen {
+            min-height: 100vh;
+            background: var(--navy);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 24px;
+        }
+
+        .login-box {
+            width: 100%;
+            max-width: 340px;
             text-align: center;
         }
 
-        h1, h2 { 
-            text-transform: uppercase; 
-            font-weight: 900;
-            margin-top: 0; 
-            color: var(--navy);
-            font-style: italic;
-            font-size: 1.4rem;
+        .login-icon {
+            width: 64px;
+            height: 64px;
+            background: linear-gradient(135deg, var(--blue), var(--navy-mid));
+            border-radius: 18px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 0 auto 20px;
+            box-shadow: 0 8px 24px rgba(14,165,233,0.3);
         }
 
-        label { display: block; margin-top: 15px; font-size: 0.75rem; font-weight: 700; text-transform: uppercase; color: #64748b; text-align: left; }
-        select, input { width: 100%; padding: 12px; margin-top: 5px; border: 1px solid #cbd5e1; border-radius: 8px; font-size: 1rem; box-sizing: border-box; }
+        .login-icon svg { width: 30px; height: 30px; color: white; }
 
-        .btn-principal {
-            width: 100%;
-            background-color: var(--navy);
-            color: white;
-            padding: 18px;
-            margin-top: 20px;
-            border: none;
-            border-bottom: 4px solid #020617;
-            border-radius: 12px;
+        .login-box h1 {
+            font-size: 22px;
             font-weight: 800;
+            color: white;
+            margin-bottom: 4px;
+            letter-spacing: -0.3px;
+        }
+
+        .login-box p {
+            font-size: 12px;
+            color: rgba(255,255,255,0.4);
             text-transform: uppercase;
+            letter-spacing: 1.5px;
+            margin-bottom: 36px;
+        }
+
+        .login-input {
+            width: 100%;
+            background: rgba(255,255,255,0.07);
+            border: 1.5px solid rgba(255,255,255,0.12);
+            border-radius: 12px;
+            padding: 15px 18px;
+            font-size: 16px;
+            color: white;
+            font-family: 'Plus Jakarta Sans', sans-serif;
+            outline: none;
+            text-align: center;
+            letter-spacing: 4px;
+            transition: border-color 0.2s;
+            margin-bottom: 12px;
+        }
+
+        .login-input:focus { border-color: var(--blue); }
+        .login-input::placeholder { letter-spacing: 2px; font-size: 13px; color: rgba(255,255,255,0.25); }
+
+        .btn-login {
+            width: 100%;
+            background: var(--blue);
+            color: white;
+            border: none;
+            border-radius: 12px;
+            padding: 15px;
+            font-size: 14px;
+            font-weight: 700;
+            font-family: 'Plus Jakarta Sans', sans-serif;
+            cursor: pointer;
+            letter-spacing: 0.5px;
+            transition: background 0.2s, transform 0.1s;
+        }
+
+        .btn-login:active { transform: scale(0.98); background: var(--blue-dark); }
+
+        .login-erro {
+            font-size: 13px;
+            color: #f87171;
+            margin-top: 10px;
+            display: none;
+        }
+
+        .login-voltar {
+            display: block;
+            margin-top: 24px;
+            font-size: 12px;
+            color: rgba(255,255,255,0.3);
+            text-decoration: none;
+        }
+
+        /* ══════════ VISÃO MORADOR ══════════ */
+        #visao-morador {
+            min-height: 100vh;
+            background: var(--navy);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 24px;
+        }
+
+        .morador-card {
+            width: 100%;
+            max-width: 360px;
+            background: white;
+            border-radius: 20px;
+            overflow: hidden;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+        }
+
+        .morador-header {
+            background: var(--navy);
+            padding: 24px;
+            text-align: center;
+        }
+
+        .morador-header svg { width: 36px; height: 36px; color: var(--blue); margin-bottom: 10px; }
+
+        .morador-header h2 {
+            font-size: 13px;
+            font-weight: 700;
+            color: rgba(255,255,255,0.5);
+            text-transform: uppercase;
+            letter-spacing: 1.5px;
+        }
+
+        .morador-body { padding: 24px; }
+
+        #detalhe-encomenda {
+            font-size: 15px;
+            line-height: 1.7;
+            color: var(--text-muted);
+            text-align: center;
+            margin-bottom: 24px;
+        }
+
+        #detalhe-encomenda b { color: var(--text); }
+
+        .btn-confirmar-morador {
+            width: 100%;
+            background: var(--green);
+            color: white;
+            border: none;
+            border-radius: 12px;
+            padding: 16px;
+            font-size: 15px;
+            font-weight: 700;
+            font-family: 'Plus Jakarta Sans', sans-serif;
             cursor: pointer;
             display: flex;
             align-items: center;
             justify-content: center;
+            gap: 8px;
+            transition: background 0.2s;
+        }
+
+        .btn-confirmar-morador:active { background: var(--green-dark); }
+
+        .morador-aviso {
+            font-size: 11px;
+            color: var(--text-light);
+            text-align: center;
+            margin-top: 16px;
+            line-height: 1.5;
+        }
+
+        .sucesso-box { text-align: center; padding: 8px 0; }
+        .sucesso-box svg { width: 48px; height: 48px; color: var(--green); margin-bottom: 16px; }
+        .sucesso-box h3 { font-size: 18px; font-weight: 800; color: var(--text); margin-bottom: 8px; }
+        .sucesso-box p { font-size: 14px; color: var(--text-muted); line-height: 1.6; }
+
+        /* ══════════ PORTEIRO ══════════ */
+        #visao-porteiro { display: none; }
+
+        .topbar {
+            background: var(--navy);
+            padding: 14px 16px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            position: sticky;
+            top: 0;
+            z-index: 100;
+        }
+
+        .topbar-left { display: flex; align-items: center; gap: 10px; }
+        .topbar-left svg { width: 22px; height: 22px; color: var(--blue); }
+
+        .topbar h1 {
+            font-size: 15px;
+            font-weight: 700;
+            color: white;
+        }
+
+        .topbar small {
+            font-size: 10px;
+            color: rgba(255,255,255,0.4);
+            display: block;
+            margin-top: 1px;
+        }
+
+        .btn-sair {
+            background: rgba(255,255,255,0.08);
+            border: 1px solid rgba(255,255,255,0.12);
+            color: rgba(255,255,255,0.6);
+            border-radius: 8px;
+            padding: 7px 12px;
+            font-size: 11px;
+            font-weight: 600;
+            font-family: 'Plus Jakarta Sans', sans-serif;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 5px;
+        }
+
+        .btn-sair svg { width: 13px; height: 13px; }
+
+        .page-content {
+            padding: 16px;
+            max-width: 500px;
+            margin: 0 auto;
+            display: flex;
+            flex-direction: column;
+            gap: 16px;
+            padding-bottom: 40px;
+        }
+
+        /* ══════════ CARDS ══════════ */
+        .card {
+            background: var(--surface);
+            border-radius: 16px;
+            overflow: hidden;
+            box-shadow: 0 1px 4px rgba(0,0,0,0.06), 0 4px 16px rgba(0,0,0,0.04);
+        }
+
+        .card-header {
+            padding: 14px 16px;
+            border-bottom: 1px solid var(--border);
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .card-header svg { width: 18px; height: 18px; color: var(--blue); flex-shrink: 0; }
+
+        .card-header h2 {
+            font-size: 14px;
+            font-weight: 700;
+            color: var(--text);
+            flex: 1;
+        }
+
+        .card-body { padding: 16px; }
+
+        /* ══════════ FORM ══════════ */
+        .field { margin-bottom: 12px; }
+
+        .field label {
+            display: block;
+            font-size: 10px;
+            font-weight: 700;
+            color: var(--text-muted);
+            text-transform: uppercase;
+            letter-spacing: 0.8px;
+            margin-bottom: 5px;
+        }
+
+        .field select, .field input[type="number"] {
+            width: 100%;
+            background: var(--bg);
+            border: 1.5px solid var(--border);
+            border-radius: 10px;
+            padding: 12px 14px;
+            font-size: 15px;
+            font-family: 'Plus Jakarta Sans', sans-serif;
+            color: var(--text);
+            outline: none;
+            transition: border-color 0.2s, background 0.2s;
+            -webkit-appearance: none;
+        }
+
+        .field select:focus, .field input:focus {
+            border-color: var(--blue);
+            background: white;
+        }
+
+        .fields-row { display: grid; grid-template-columns: 1fr 2fr; gap: 10px; }
+
+        /* Preview morador selecionado */
+        .morador-sel {
+            background: #f0f9ff;
+            border: 1.5px solid #bae6fd;
+            border-radius: 10px;
+            padding: 10px 14px;
+            margin-bottom: 12px;
+            display: none;
+            align-items: center;
             gap: 10px;
+        }
+
+        .morador-sel.ativo { display: flex; }
+
+        .morador-sel-av {
+            width: 36px;
+            height: 36px;
+            background: var(--blue);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 12px;
+            font-weight: 800;
+            color: white;
+            flex-shrink: 0;
+        }
+
+        .morador-sel-info p { font-size: 13px; font-weight: 700; color: var(--navy); }
+        .morador-sel-info small { font-size: 11px; color: var(--text-muted); }
+
+        /* Stepper volumes */
+        .vol-stepper {
+            display: flex;
+            align-items: center;
+            background: var(--bg);
+            border: 1.5px solid var(--border);
+            border-radius: 10px;
+            overflow: hidden;
+            transition: border-color 0.2s;
+        }
+
+        .vol-stepper:focus-within { border-color: var(--blue); }
+
+        .vol-btn {
+            background: none;
+            border: none;
+            padding: 12px 20px;
+            font-size: 20px;
+            font-weight: 700;
+            color: var(--blue);
+            cursor: pointer;
+            transition: background 0.15s;
+            line-height: 1;
+        }
+
+        .vol-btn:active { background: #e0f2fe; }
+
+        .vol-num {
+            flex: 1;
+            text-align: center;
+            font-size: 18px;
+            font-weight: 800;
+            color: var(--text);
+            border: none;
+            background: none;
+            outline: none;
+            font-family: 'Plus Jakarta Sans', sans-serif;
+        }
+
+        .btn-registrar {
+            width: 100%;
+            background: var(--navy);
+            color: white;
+            border: none;
+            border-radius: 12px;
+            padding: 15px;
+            font-size: 14px;
+            font-weight: 700;
+            font-family: 'Plus Jakarta Sans', sans-serif;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            transition: background 0.2s, transform 0.1s;
+            margin-top: 4px;
+        }
+
+        .btn-registrar svg { width: 17px; height: 17px; }
+        .btn-registrar:active { transform: scale(0.98); background: #0f2236cc; }
+
+        /* ══════════ LISTA PENDÊNCIAS ══════════ */
+        .lista-header-row {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            width: 100%;
+        }
+
+        .badge {
+            background: var(--blue);
+            color: white;
+            font-size: 10px;
+            font-weight: 800;
+            border-radius: 20px;
+            padding: 2px 9px;
+            margin-left: 6px;
+        }
+
+        .badge-amber { background: var(--amber); }
+
+        .btn-xls {
+            background: none;
+            border: 1.5px solid var(--border);
+            border-radius: 8px;
+            padding: 6px 10px;
+            font-size: 11px;
+            font-weight: 700;
+            color: var(--text-muted);
+            font-family: 'Plus Jakarta Sans', sans-serif;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 5px;
             transition: all 0.2s;
         }
 
-        .btn-principal:active { border-bottom-width: 0; transform: translateY(4px); }
-        .btn-green { background-color: var(--green-success); border-bottom-color: #166534; }
+        .btn-xls:hover { border-color: var(--green); color: var(--green); }
+        .btn-xls svg { width: 13px; height: 13px; }
 
-        .item-pendente { 
-            border-bottom: 1px solid #f1f5f9; 
-            padding: 12px 0; 
-            display: flex; 
-            justify-content: space-between; 
-            align-items: center; 
-            text-align: left;
+        /* Grupo por dia */
+        .dia-grupo { }
+
+        .dia-label {
+            font-size: 10px;
+            font-weight: 800;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            color: var(--text-muted);
+            padding: 12px 16px 6px;
+            display: flex;
+            align-items: center;
+            gap: 6px;
         }
 
-        .aviso-seguranca {
-            font-size: 0.85rem;
-            color: #64748b;
-            margin-top: 25px;
-            padding-top: 20px;
-            border-top: 1px solid #f1f5f9;
-            line-height: 1.4;
+        .dia-label::after {
+            content: '';
+            flex: 1;
+            height: 1px;
+            background: var(--border);
         }
+
+        .dia-label.atrasado { color: var(--red); }
+
+        /* Item */
+        .item-pendente {
+            padding: 12px 16px;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            border-bottom: 1px solid var(--border);
+            transition: background 0.15s;
+        }
+
+        .item-pendente:last-child { border-bottom: none; }
+        .item-pendente:active { background: var(--bg); }
+
+        .item-av {
+            width: 40px;
+            height: 40px;
+            border-radius: 10px;
+            background: #f0f9ff;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 11px;
+            font-weight: 800;
+            color: var(--blue);
+            flex-shrink: 0;
+            letter-spacing: 0.3px;
+        }
+
+        .item-av.atrasado { background: #fff7ed; color: var(--amber); }
+        .item-av.muito-atrasado { background: #fef2f2; color: var(--red); }
+
+        .item-info { flex: 1; min-width: 0; }
+
+        .item-apto {
+            font-size: 14px;
+            font-weight: 700;
+            color: var(--text);
+        }
+
+        .item-nome {
+            font-size: 11px;
+            color: var(--text-muted);
+            margin-top: 1px;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        .item-meta {
+            font-size: 10px;
+            color: var(--text-light);
+            margin-top: 2px;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .item-meta svg { width: 10px; height: 10px; }
+
+        .vol-badge {
+            font-size: 10px;
+            font-weight: 700;
+            background: var(--bg);
+            color: var(--text-muted);
+            border-radius: 6px;
+            padding: 2px 7px;
+            white-space: nowrap;
+        }
+
+        .btn-baixa {
+            background: var(--green);
+            color: white;
+            border: none;
+            border-radius: 9px;
+            padding: 9px 14px;
+            font-size: 12px;
+            font-weight: 800;
+            font-family: 'Plus Jakarta Sans', sans-serif;
+            cursor: pointer;
+            white-space: nowrap;
+            transition: background 0.15s, transform 0.1s;
+            flex-shrink: 0;
+        }
+
+        .btn-baixa:active { transform: scale(0.93); background: var(--green-dark); }
+
+        .lista-vazia {
+            padding: 36px 16px;
+            text-align: center;
+        }
+
+        .lista-vazia svg { width: 36px; height: 36px; color: var(--border); margin-bottom: 10px; }
+        .lista-vazia p { font-size: 13px; color: var(--text-light); }
+
+        /* ══════════ MODAL BAIXA ══════════ */
+        .modal-overlay {
+            position: fixed;
+            inset: 0;
+            background: rgba(15,34,54,0.65);
+            display: flex;
+            align-items: flex-end;
+            justify-content: center;
+            z-index: 500;
+            opacity: 0;
+            pointer-events: none;
+            transition: opacity 0.25s;
+            backdrop-filter: blur(3px);
+        }
+
+        .modal-overlay.aberto { opacity: 1; pointer-events: all; }
+
+        .modal {
+            background: white;
+            border-radius: 20px 20px 0 0;
+            padding: 20px 20px 36px;
+            width: 100%;
+            max-width: 500px;
+            transform: translateY(50px);
+            transition: transform 0.3s ease;
+        }
+
+        .modal-overlay.aberto .modal { transform: translateY(0); }
+
+        .modal-handle {
+            width: 36px;
+            height: 4px;
+            background: var(--border);
+            border-radius: 2px;
+            margin: 0 auto 20px;
+        }
+
+        .modal h3 {
+            font-size: 17px;
+            font-weight: 800;
+            margin-bottom: 4px;
+        }
+
+        .modal p { font-size: 13px; color: var(--text-muted); margin-bottom: 18px; }
+
+        .modal-info {
+            background: var(--bg);
+            border-radius: 10px;
+            padding: 12px 14px;
+            margin-bottom: 18px;
+        }
+
+        .modal-info strong { display: block; font-size: 15px; font-weight: 800; }
+        .modal-info span { font-size: 12px; color: var(--text-muted); }
+
+        .modal-btns { display: flex; flex-direction: column; gap: 8px; }
+
+        .btn-modal-ok {
+            background: var(--green);
+            color: white;
+            border: none;
+            border-radius: 12px;
+            padding: 15px;
+            font-size: 14px;
+            font-weight: 700;
+            font-family: 'Plus Jakarta Sans', sans-serif;
+            cursor: pointer;
+            transition: background 0.2s;
+        }
+
+        .btn-modal-ok:active { background: var(--green-dark); }
+
+        .btn-modal-cancel {
+            background: none;
+            border: 1.5px solid var(--border);
+            border-radius: 12px;
+            padding: 13px;
+            font-size: 13px;
+            font-weight: 600;
+            color: var(--text-muted);
+            font-family: 'Plus Jakarta Sans', sans-serif;
+            cursor: pointer;
+        }
+
+        /* ══════════ TOAST ══════════ */
+        .toast {
+            position: fixed;
+            bottom: 20px;
+            left: 50%;
+            transform: translateX(-50%) translateY(80px);
+            background: var(--navy);
+            color: white;
+            padding: 11px 18px;
+            border-radius: 10px;
+            font-size: 13px;
+            font-weight: 600;
+            z-index: 1000;
+            transition: transform 0.3s ease;
+            white-space: nowrap;
+            pointer-events: none;
+        }
+
+        .toast.show { transform: translateX(-50%) translateY(0); }
+        .toast.green { background: var(--green); }
+        .toast.blue { background: var(--blue-dark); }
 
         .hidden { display: none !important; }
     </style>
 </head>
 <body>
 
-    <div id="login-screen" class="card hidden">
-        <h1>Acesso Restrito</h1>
-        <p>Credencial de Segurança da Portaria:</p>
-        <input type="password" id="senha-input" placeholder="••••••••">
-        <button class="btn-principal" onclick="verificarSenha()">Entrar no Sistema</button>
-        <a href="index.html" style="display:block; margin-top:15px; font-size:0.8rem; color:var(--blue-action); text-decoration:none;">Voltar ao Início</a>
-    </div>
-
-    <div id="visao-morador" class="card hidden">
-        <div id="conteudo-pendente">
-            <h1>CONFIRMAR RECEBIMENTO</h1>
-            <p id="detalhe-encomenda" style="margin: 20px 0; font-size: 1.1rem; line-height: 1.6;">Buscando informações...</p>
-            <button class="btn-principal btn-green" onclick="confirmarPeloMorador()">
-                <svg width="20" height="20" fill="currentColor" viewBox="0 0 16 16"><path d="M12.354 4.354a.5.5 0 0 0-.708-.708L5 10.293 1.854 7.146a.5.5 0 1 0-.708.708l3.5 3.5a.5.5 0 0 0 .708 0l7-7z"/></svg>
-                REGISTRAR RETIRADA
-            </button>
-            <p class="aviso-seguranca">Esta ação confirma o recebimento dos volumes na portaria.</p>
+<!-- ══════ LOGIN ══════ -->
+<div id="login-screen" class="hidden">
+    <div class="login-box">
+        <div class="login-icon">
+            <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10"/>
+            </svg>
         </div>
-        
-        <div id="conteudo-sucesso" class="hidden">
-            <h1 style="color: var(--green-success);">✅ PROTOCOLO FINALIZADO</h1>
-            <p style="line-height: 1.6; margin: 20px 0; font-size: 1.1rem;">
-                Obrigado por confirmar o recebimento! <br><br>
-                Esta ação nos ajuda a transformar o nosso condomínio em um lugar <b>mais seguro e organizado.</b>
-            </p>
-            <div class="aviso-seguranca" style="text-align: left; background: #f8fafc; padding: 15px; border-radius: 10px;">
-                <b>Atenção:</b> Caso tenha confirmado o recebimento por acidente, entre em contato com a portaria solicitando que o porteiro envie um novo link para a retirada.
+        <h1>Portaria</h1>
+        <p>Água Marinha · Acesso Restrito</p>
+        <input type="password" class="login-input" id="senha-input" placeholder="Senha da portaria">
+        <button class="btn-login" onclick="verificarSenha()">Entrar</button>
+        <p class="login-erro" id="login-erro">Senha incorreta. Tente novamente.</p>
+        <a href="index.html" class="login-voltar">← Voltar ao início</a>
+    </div>
+</div>
+
+<!-- ══════ MORADOR ══════ -->
+<div id="visao-morador" class="hidden">
+    <div class="morador-card">
+        <div class="morador-header">
+            <svg fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10"/>
+            </svg>
+            <h2>Condomínio Água Marinha</h2>
+        </div>
+        <div class="morador-body">
+            <div id="conteudo-pendente">
+                <p id="detalhe-encomenda">Buscando informações...</p>
+                <button class="btn-confirmar-morador" onclick="confirmarPeloMorador()">
+                    <svg width="18" height="18" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M4.5 12.75l6 6 9-13.5"/>
+                    </svg>
+                    Confirmar Retirada
+                </button>
+                <p class="morador-aviso">Esta ação registra o recebimento dos volumes na portaria. Caso tenha confirmado por acidente, entre em contato com a portaria.</p>
+            </div>
+            <div id="conteudo-sucesso" class="hidden sucesso-box">
+                <svg fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M9 12.75L11.25 15 15 9.75M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                </svg>
+                <h3>Recebimento confirmado!</h3>
+                <p>Obrigado por confirmar. Isso nos ajuda a manter o condomínio mais organizado e seguro.</p>
             </div>
         </div>
     </div>
+</div>
 
-    <div id="visao-porteiro" class="hidden" style="width: 100%; max-width: 450px;">
+<!-- ══════ PORTEIRO ══════ -->
+<div id="visao-porteiro">
+    <div class="topbar">
+        <div class="topbar-left">
+            <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10"/>
+            </svg>
+            <div>
+                <h1>Portaria</h1>
+                <small id="hora-atual"></small>
+            </div>
+        </div>
+        <button class="btn-sair" onclick="logout()">
+            <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M15.75 9V5.25A2.25 2.25 0 0013.5 3h-6a2.25 2.25 0 00-2.25 2.25v13.5A2.25 2.25 0 007.5 21h6a2.25 2.25 0 002.25-2.25V15M12 9l-3 3m0 0l3 3m-3-3h12.75"/>
+            </svg>
+            Sair
+        </button>
+    </div>
+
+    <div class="page-content">
+
+        <!-- Registro -->
         <div class="card">
-            <h1>📦 Registro de Entrada</h1>
-            <label>Bloco</label>
-            <select id="bloco" onchange="filtrarApartamentos()"><option value="">Carregando...</option></select>
-            <label>Apartamento / Morador</label>
-            <select id="apartamento"><option value="">Selecione o Bloco...</option></select>
-            <label>Volumes Recebidos</label>
-            <input type="number" id="qtd" value="1" min="1">
-            <button class="btn-principal" onclick="registrar()">CONFIRMAR REGISTRO E ENVIAR ALERTA</button>
+            <div class="card-header">
+                <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M12 4.5v15m7.5-7.5h-15"/>
+                </svg>
+                <h2>Nova Encomenda</h2>
+            </div>
+            <div class="card-body">
+                <div class="fields-row">
+                    <div class="field">
+                        <label>Bloco</label>
+                        <select id="bloco" onchange="filtrarApartamentos()">
+                            <option value="">–</option>
+                        </select>
+                    </div>
+                    <div class="field">
+                        <label>Apartamento / Morador</label>
+                        <select id="apartamento" onchange="mostrarMorador()">
+                            <option value="">Selecione o bloco</option>
+                        </select>
+                    </div>
+                </div>
+
+                <div class="morador-sel" id="morador-sel">
+                    <div class="morador-sel-av" id="morador-av"></div>
+                    <div class="morador-sel-info">
+                        <p id="morador-sel-nome"></p>
+                        <small id="morador-sel-sub"></small>
+                    </div>
+                </div>
+
+                <div class="field">
+                    <label>Volumes Recebidos</label>
+                    <div class="vol-stepper">
+                        <button class="vol-btn" onclick="ajustarVol(-1)">−</button>
+                        <input class="vol-num" id="qtd" type="number" value="1" min="1" max="99" readonly>
+                        <button class="vol-btn" onclick="ajustarVol(1)">+</button>
+                    </div>
+                </div>
+
+                <button class="btn-registrar" onclick="registrar()">
+                    <svg fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M6 12L3.269 3.126A59.768 59.768 0 0121.485 12 59.77 59.77 0 013.27 20.876L5.999 12zm0 0h7.5"/>
+                    </svg>
+                    Confirmar e Enviar Alerta
+                </button>
+            </div>
         </div>
 
+        <!-- Pendências -->
         <div class="card">
-            <h2>🚚 Aguardando Retirada</h2>
-            <div id="lista-pendentes" style="margin-top: 15px;">Carregando...</div>
-            <button class="btn-principal" style="background: var(--blue-action); border-bottom-color: #0077b6;" onclick="exportarDados()">📊 GERAR RELATÓRIO CSV</button>
-            <button class="btn-principal" style="background: #94a3b8; border-bottom-color: #475569; font-size: 0.7rem;" onclick="logout()">SAIR / BLOQUEAR SISTEMA</button>
+            <div class="card-header">
+                <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M8.25 18.75a1.5 1.5 0 01-3 0m3 0a1.5 1.5 0 00-3 0m3 0h6m-9 0H3.375a1.125 1.125 0 01-1.125-1.125V14.25m17.25 4.5a1.5 1.5 0 01-3 0m3 0a1.5 1.5 0 00-3 0m3 0h1.125c.621 0 1.129-.504 1.09-1.124a17.902 17.902 0 00-3.213-9.193 2.056 2.056 0 00-1.58-.86H14.25M16.5 18.75h-2.25m0-11.177v-.958c0-.568-.422-1.048-.987-1.106a48.554 48.554 0 00-10.026 0 1.106 1.106 0 00-.987 1.106v7.635m12-6.677v6.677m0 4.5v-4.5m0 0h-12"/>
+                </svg>
+                <div class="lista-header-row">
+                    <div style="display:flex;align-items:center">
+                        <h2>Aguardando Retirada</h2>
+                        <span class="badge" id="badge-total">0</span>
+                    </div>
+                    <button class="btn-xls" onclick="exportarXLS()">
+                        <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M3 16.5v2.25A2.25 2.25 0 005.25 21h13.5A2.25 2.25 0 0021 18.75V16.5M16.5 12L12 16.5m0 0L7.5 12m4.5 4.5V3"/>
+                        </svg>
+                        XLS
+                    </button>
+                </div>
+            </div>
+            <div id="lista-pendentes">
+                <div class="lista-vazia">
+                    <svg fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M20.25 7.5l-.625 10.632a2.25 2.25 0 01-2.247 2.118H6.622a2.25 2.25 0 01-2.247-2.118L3.75 7.5M10 11.25h4M3.375 7.5h17.25c.621 0 1.125-.504 1.125-1.125v-1.5c0-.621-.504-1.125-1.125-1.125H3.375c-.621 0-1.125.504-1.125 1.125v1.5c0 .621.504 1.125 1.125 1.125z"/>
+                    </svg>
+                    <p>Carregando...</p>
+                </div>
+            </div>
+        </div>
+
+    </div>
+</div>
+
+<!-- Modal baixa -->
+<div class="modal-overlay" id="modal-overlay">
+    <div class="modal">
+        <div class="modal-handle"></div>
+        <h3>Confirmar Baixa</h3>
+        <p>Registrar que esta encomenda foi retirada na portaria?</p>
+        <div class="modal-info">
+            <strong id="modal-apto"></strong>
+            <span id="modal-nome"></span>
+        </div>
+        <div class="modal-btns">
+            <button class="btn-modal-ok" onclick="confirmarBaixa()">Confirmar Retirada</button>
+            <button class="btn-modal-cancel" onclick="fecharModal()">Cancelar</button>
         </div>
     </div>
+</div>
+
+<div class="toast" id="toast"></div>
 
 <script>
     const SUPABASE_URL = 'https://esegzalccqvoypdpencs.supabase.co';
@@ -153,45 +868,78 @@
 
     const urlParams = new URLSearchParams(window.location.search);
     const encomendaId = urlParams.get('id');
+    let itemParaBaixa = null;
 
+    // ── HORA ──
+    function atualizarHora() {
+        const agora = new Date();
+        document.getElementById('hora-atual').textContent =
+            agora.toLocaleString('pt-BR', { weekday: 'short', day: '2-digit', month: '2-digit', hour: '2-digit', minute: '2-digit' });
+    }
+
+    // ── INIT ──
     async function inicializar() {
         if (encomendaId) {
-            exibirVisaoMorador();
+            document.getElementById('visao-morador').classList.remove('hidden');
+            await exibirVisaoMorador();
         } else {
             if (localStorage.getItem('portaria_logado') === 'true') {
-                exibirVisaoPorteiro();
+                document.getElementById('visao-porteiro').style.display = 'block';
+                await exibirVisaoPorteiro();
+                atualizarHora();
+                setInterval(atualizarHora, 30000);
             } else {
                 document.getElementById('login-screen').classList.remove('hidden');
             }
         }
     }
 
+    // ── LOGIN ──
     function verificarSenha() {
         if (document.getElementById('senha-input').value.trim() === SENHA_CORRETA) {
             localStorage.setItem('portaria_logado', 'true');
             location.reload();
-        } else { alert("Credencial Incorreta!"); }
+        } else {
+            document.getElementById('login-erro').style.display = 'block';
+            document.getElementById('senha-input').value = '';
+        }
     }
 
-    function logout() { localStorage.removeItem('portaria_logado'); location.reload(); }
+    document.getElementById('senha-input').addEventListener('keydown', e => {
+        if (e.key === 'Enter') verificarSenha();
+    });
 
+    function logout() {
+        localStorage.removeItem('portaria_logado');
+        location.reload();
+    }
+
+    // ── MORADOR ──
     async function exibirVisaoMorador() {
-        document.getElementById('visao-morador').classList.remove('hidden');
-        const { data } = await supabaseClient.from('encomendas').select('quantidade, status, moradores(nome, bloco, apartamento)').eq('id', encomendaId).single();
+        const { data } = await supabaseClient
+            .from('encomendas')
+            .select('quantidade, status, moradores(nome, bloco, apartamento)')
+            .eq('id', encomendaId)
+            .single();
+
         if (data) {
-            if (data.status === 'ENTREGUE') { 
-                mostrarSucesso(); 
-            } else { 
-                document.getElementById('detalhe-encomenda').innerHTML = `Prezado(a) <b>${data.moradores.nome}</b>, por favor, confirme a retirada de <b>${data.quantidade} volume(s)</b>.<br>Unidade: Bloco ${data.moradores.bloco} - Apto ${data.moradores.apartamento}.`; 
+            if (data.status === 'ENTREGUE') {
+                mostrarSucesso();
+            } else {
+                document.getElementById('detalhe-encomenda').innerHTML =
+                    `Prezado(a) <b>${data.moradores.nome}</b>, confirme a retirada de <b>${data.quantidade} volume(s)</b>.<br><br>Bloco ${data.moradores.bloco} · Apto ${data.moradores.apartamento}`;
             }
         } else {
-            document.getElementById('detalhe-encomenda').innerText = "Registro não encontrado.";
+            document.getElementById('detalhe-encomenda').textContent = 'Registro não encontrado.';
         }
     }
 
     async function confirmarPeloMorador() {
-        const { error } = await supabaseClient.from('encomendas').update({ status: 'ENTREGUE' }).eq('id', encomendaId);
-        if (!error) { mostrarSucesso(); }
+        const { error } = await supabaseClient
+            .from('encomendas')
+            .update({ status: 'ENTREGUE', baixado_pela: 'MORADOR', baixado_em: new Date().toISOString() })
+            .eq('id', encomendaId);
+        if (!error) mostrarSucesso();
     }
 
     function mostrarSucesso() {
@@ -199,64 +947,246 @@
         document.getElementById('conteudo-sucesso').classList.remove('hidden');
     }
 
+    // ── PORTEIRO ──
     async function exibirVisaoPorteiro() {
-        document.getElementById('visao-porteiro').classList.remove('hidden');
-        const { data } = await supabaseClient.from('moradores').select('*').order('bloco').order('apartamento');
+        const { data } = await supabaseClient
+            .from('moradores')
+            .select('*')
+            .order('bloco')
+            .order('apartamento');
+
         window.moradoresGlobal = data;
-        const blocos = [...new Set(data.map(m => m.bloco))];
-        const select = document.getElementById('bloco');
-        select.innerHTML = '<option value="">Bloco</option>';
-        blocos.forEach(b => select.innerHTML += `<option value="${b}">Bloco ${b}</option>`);
-        carregarPendencias();
+
+        const blocos = [...new Set(data.map(m => m.bloco))].sort();
+        const sel = document.getElementById('bloco');
+        sel.innerHTML = '<option value="">–</option>';
+        blocos.forEach(b => sel.innerHTML += `<option value="${b}">Bloco ${b}</option>`);
+
+        await carregarPendencias();
     }
 
     function filtrarApartamentos() {
         const bloco = document.getElementById('bloco').value;
-        const select = document.getElementById('apartamento');
-        select.innerHTML = '<option value="">Apartamento</option>';
-        window.moradoresGlobal.filter(m => m.bloco === bloco).forEach(m => {
-            select.innerHTML += `<option value="${m.id}">${m.apartamento} - ${m.nome}</option>`;
-        });
+        const sel = document.getElementById('apartamento');
+        sel.innerHTML = '<option value="">Selecione</option>';
+        document.getElementById('morador-sel').classList.remove('ativo');
+        if (!bloco) return;
+        window.moradoresGlobal
+            .filter(m => m.bloco === bloco)
+            .forEach(m => {
+                sel.innerHTML += `<option value="${m.id}">${m.apartamento} – ${m.nome}</option>`;
+            });
     }
 
-    async function carregarPendencias() {
-        const { data } = await supabaseClient.from('encomendas').select('id, quantidade, moradores(nome, bloco, apartamento)').eq('status', 'DISPONÍVEL').order('criado_em', {ascending: false});
-        const container = document.getElementById('lista-pendentes');
-        container.innerHTML = data.length === 0 ? "<p style='color:#94a3b8; font-size:0.8rem;'>Nenhuma encomenda aguardando retirada.</p>" : "";
-        data.forEach(item => {
-            container.innerHTML += `<div class="item-pendente"><div><b>${item.moradores.bloco}-${item.moradores.apartamento}</b><br><small>${item.moradores.nome}</small></div><button onclick="darBaixa('${item.id}')" style="background:var(--green-success); color:white; border:none; padding:8px 12px; border-radius:8px; font-weight:bold; cursor:pointer;">BAIXA</button></div>`;
-        });
+    function mostrarMorador() {
+        const id = document.getElementById('apartamento').value;
+        const el = document.getElementById('morador-sel');
+        if (!id) { el.classList.remove('ativo'); return; }
+        const m = window.moradoresGlobal.find(x => x.id == id);
+        if (!m) return;
+        const iniciais = m.nome.trim().split(' ').slice(0,2).map(p => p[0]).join('');
+        document.getElementById('morador-av').textContent = iniciais;
+        document.getElementById('morador-sel-nome').textContent = m.nome;
+        document.getElementById('morador-sel-sub').textContent =
+            `Bloco ${m.bloco} · Apto ${m.apartamento}` + (m.whatsapp ? ' · WhatsApp cadastrado' : ' · Sem WhatsApp');
+        el.classList.add('ativo');
+    }
+
+    function ajustarVol(d) {
+        const el = document.getElementById('qtd');
+        el.value = Math.max(1, Math.min(99, parseInt(el.value) + d));
     }
 
     async function registrar() {
         const id = document.getElementById('apartamento').value;
         const qtd = document.getElementById('qtd').value;
-        if(!id) return alert("Selecione o morador!");
-        const { data, error } = await supabaseClient.from('encomendas').insert([{ morador_id: id, quantidade: qtd }]).select();
-        if(!error) {
-            const m = window.moradoresGlobal.find(mor => mor.id == id);
+        if (!id) { toast('Selecione o morador', ''); return; }
+
+        const { data, error } = await supabaseClient
+            .from('encomendas')
+            .insert([{ morador_id: id, quantidade: qtd }])
+            .select();
+
+        if (!error) {
+            const m = window.moradoresGlobal.find(x => x.id == id);
             const link = `${window.location.origin}${window.location.pathname}?id=${data[0].id}`;
-            const msg = window.encodeURIComponent(`📦 *CONDOMÍNIO ÁGUA MARINHA*\n\nOlá *${m.nome}*,\nInformamos que chegou *${qtd} volume(s)* para sua unidade.\n\nRetire na portaria e confirme no link abaixo:\n👉 ${link}`);
+            const msg = encodeURIComponent(`📦 *CONDOMÍNIO ÁGUA MARINHA*\n\nOlá *${m.nome}*,\nInformamos que chegou *${qtd} volume(s)* para sua unidade.\n\nRetire na portaria e confirme no link:\n👉 ${link}`);
             window.open(`https://wa.me/${m.whatsapp}?text=${msg}`, '_blank');
-            location.reload();
+            toast('Encomenda registrada! Alerta enviado.', 'green');
+            // reset form
+            document.getElementById('bloco').value = '';
+            document.getElementById('apartamento').innerHTML = '<option value="">Selecione o bloco</option>';
+            document.getElementById('qtd').value = 1;
+            document.getElementById('morador-sel').classList.remove('ativo');
+            await carregarPendencias();
+        } else {
+            toast('Erro ao registrar. Tente novamente.', '');
         }
     }
 
-    async function darBaixa(id) {
-        if(confirm("Confirmar baixa manual desta encomenda?")) {
-            await supabaseClient.from('encomendas').update({ status: 'ENTREGUE' }).eq('id', id);
-            location.reload();
+    // ── LISTA ──
+    async function carregarPendencias() {
+        const { data } = await supabaseClient
+            .from('encomendas')
+            .select('id, quantidade, criado_em, moradores(nome, bloco, apartamento)')
+            .eq('status', 'DISPONÍVEL')
+            .order('criado_em', { ascending: true });
+
+        window.pendenciasGlobal = data;
+        document.getElementById('badge-total').textContent = data.length;
+        renderLista(data);
+    }
+
+    function renderLista(data) {
+        const cont = document.getElementById('lista-pendentes');
+
+        if (!data || data.length === 0) {
+            cont.innerHTML = `
+                <div class="lista-vazia">
+                    <svg fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M9 12.75L11.25 15 15 9.75M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                    </svg>
+                    <p>Nenhuma encomenda aguardando retirada</p>
+                </div>`;
+            return;
+        }
+
+        // Agrupar por data
+        const hoje = new Date();
+        const grupos = {};
+
+        data.forEach(item => {
+            const d = new Date(item.criado_em);
+            const chave = d.toLocaleDateString('pt-BR');
+            if (!grupos[chave]) grupos[chave] = { label: '', items: [], data: d };
+            grupos[chave].items.push(item);
+        });
+
+        // Labels legíveis
+        Object.keys(grupos).forEach(chave => {
+            const g = grupos[chave];
+            const diff = Math.floor((hoje - g.data) / 86400000);
+            if (diff === 0) g.label = 'Hoje';
+            else if (diff === 1) g.label = 'Ontem';
+            else g.label = `${chave} · ${diff} dias atrás`;
+            g.diasAtraso = diff;
+        });
+
+        let html = '';
+        Object.keys(grupos).sort((a,b) => grupos[b].data - grupos[a].data).forEach(chave => {
+            const g = grupos[chave];
+            const atrasado = g.diasAtraso >= 3;
+            html += `<div class="dia-grupo">
+                <div class="dia-label ${atrasado ? 'atrasado' : ''}">${g.label}</div>`;
+
+            g.items.forEach(item => {
+                const m = item.moradores;
+                const apto = `${m.bloco}-${m.apartamento}`;
+                const iniciais = m.nome.trim().split(' ').slice(0,2).map(p => p[0]).join('');
+                const avClass = g.diasAtraso >= 5 ? 'muito-atrasado' : g.diasAtraso >= 3 ? 'atrasado' : '';
+                const hora = new Date(item.criado_em).toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' });
+
+                html += `
+                    <div class="item-pendente">
+                        <div class="item-av ${avClass}">${iniciais}</div>
+                        <div class="item-info">
+                            <div class="item-apto">${apto}</div>
+                            <div class="item-nome">${m.nome}</div>
+                            <div class="item-meta">
+                                <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" d="M12 6v6h4.5m4.5 0a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                                </svg>
+                                ${hora}
+                            </div>
+                        </div>
+                        <span class="vol-badge">${item.quantidade} vol.</span>
+                        <button class="btn-baixa" onclick="abrirModal('${item.id}', '${apto}', '${m.nome.replace(/'/g,"\\'")}', ${item.quantidade})">BAIXA</button>
+                    </div>`;
+            });
+
+            html += '</div>';
+        });
+
+        cont.innerHTML = html;
+    }
+
+    // ── MODAL BAIXA ──
+    function abrirModal(id, apto, nome, qtd) {
+        itemParaBaixa = id;
+        document.getElementById('modal-apto').textContent = apto;
+        document.getElementById('modal-nome').textContent = `${nome} · ${qtd} vol.`;
+        document.getElementById('modal-overlay').classList.add('aberto');
+    }
+
+    function fecharModal() {
+        document.getElementById('modal-overlay').classList.remove('aberto');
+        itemParaBaixa = null;
+    }
+
+    document.getElementById('modal-overlay').addEventListener('click', function(e) {
+        if (e.target === this) fecharModal();
+    });
+
+    async function confirmarBaixa() {
+        if (!itemParaBaixa) return;
+        const { error } = await supabaseClient
+            .from('encomendas')
+            .update({
+                status: 'ENTREGUE',
+                baixado_pela: 'PORTARIA',
+                baixado_em: new Date().toISOString()
+            })
+            .eq('id', itemParaBaixa);
+
+        fecharModal();
+        if (!error) {
+            toast('Baixa registrada pela portaria', 'green');
+            await carregarPendencias();
+        } else {
+            toast('Erro ao registrar baixa', '');
         }
     }
 
-    async function exportarDados() {
-        const { data } = await supabaseClient.from('encomendas').select('status, quantidade, criado_em, moradores(nome, bloco, apartamento)');
-        let csv = "Data;Bloco;Apto;Nome;Qtd;Status\n";
-        data.forEach(row => { csv += `${new Date(row.criado_em).toLocaleDateString()};${row.moradores.bloco};${row.moradores.apartamento};${row.moradores.nome};${row.quantidade};${row.status}\n`; });
-        const blob = new Blob([csv], { type: 'text/csv' });
-        const url = window.URL.createObjectURL(blob);
-        const a = document.createElement('a');
-        a.href = url; a.download = `relatorio_agua_marinha_${new Date().toLocaleDateString()}.csv`; a.click();
+    // ── XLS ──
+    async function exportarXLS() {
+        toast('Gerando relatório...', 'blue');
+        const { data } = await supabaseClient
+            .from('encomendas')
+            .select('status, quantidade, criado_em, baixado_pela, baixado_em, moradores(nome, bloco, apartamento)')
+            .order('criado_em', { ascending: false });
+
+        const rows = data.map(r => ({
+            'Data Entrada': new Date(r.criado_em).toLocaleString('pt-BR'),
+            'Bloco': r.moradores.bloco,
+            'Apto': r.moradores.apartamento,
+            'Nome': r.moradores.nome,
+            'Volumes': r.quantidade,
+            'Status': r.status,
+            'Retirado por': r.baixado_pela || '–',
+            'Data Retirada': r.baixado_em ? new Date(r.baixado_em).toLocaleString('pt-BR') : '–'
+        }));
+
+        const ws = XLSX.utils.json_to_sheet(rows);
+        const wb = XLSX.utils.book_new();
+        XLSX.utils.book_append_sheet(wb, ws, 'Encomendas');
+
+        // Largura das colunas
+        ws['!cols'] = [
+            { wch: 18 }, { wch: 8 }, { wch: 8 }, { wch: 30 },
+            { wch: 8 }, { wch: 12 }, { wch: 12 }, { wch: 18 }
+        ];
+
+        const data_str = new Date().toLocaleDateString('pt-BR').replace(/\//g, '-');
+        XLSX.writeFile(wb, `relatorio_agua_marinha_${data_str}.xlsx`);
+        setTimeout(() => toast('Relatório exportado!', 'green'), 400);
+    }
+
+    // ── TOAST ──
+    function toast(msg, tipo) {
+        const el = document.getElementById('toast');
+        el.textContent = msg;
+        el.className = `toast show ${tipo}`;
+        setTimeout(() => el.className = 'toast', 3000);
     }
 
     inicializar();

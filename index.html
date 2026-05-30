@@ -4,33 +4,238 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Portal Água Marinha</title>
-    <script src="https://cdn.tailwindcss.com"></script>
-</head>
-<body class="bg-gray-100 min-h-screen flex flex-col items-center justify-center p-6">
-    <div class="max-w-md w-full bg-white rounded-xl shadow-lg p-8 border-t-8 border-blue-600">
-        <h1 class="text-2xl font-bold text-gray-800 text-center mb-2">Condomínio Água Marinha</h1>
-        <p class="text-gray-500 text-center mb-8">Gestão Digital de Encomendas</p>
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --navy: #0f2236;
+            --navy-mid: #1e3a5f;
+            --blue: #0ea5e9;
+            --bg: #f1f5f9;
+            --border: #e2e8f0;
+            --text: #1e293b;
+            --text-muted: #64748b;
+        }
 
-        <div class="space-y-4">
-            <a href="cadastro.html" class="block w-full bg-blue-600 hover:bg-blue-700 text-white text-center py-4 rounded-lg font-semibold text-lg transition shadow-md">
-                SOU MORADOR<br>
-                <span class="text-xs font-normal opacity-80 uppercase">Cadastrar meu WhatsApp</span>
+        * { margin: 0; padding: 0; box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+
+        body {
+            font-family: 'Plus Jakarta Sans', sans-serif;
+            background: var(--navy);
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            padding: 24px;
+            position: relative;
+            overflow: hidden;
+        }
+
+        /* Fundo decorativo */
+        body::before {
+            content: '';
+            position: absolute;
+            width: 500px;
+            height: 500px;
+            border-radius: 50%;
+            background: radial-gradient(circle, rgba(14,165,233,0.08) 0%, transparent 70%);
+            top: -100px;
+            right: -150px;
+            pointer-events: none;
+        }
+
+        body::after {
+            content: '';
+            position: absolute;
+            width: 400px;
+            height: 400px;
+            border-radius: 50%;
+            background: radial-gradient(circle, rgba(14,165,233,0.05) 0%, transparent 70%);
+            bottom: -100px;
+            left: -100px;
+            pointer-events: none;
+        }
+
+        .container {
+            width: 100%;
+            max-width: 360px;
+            position: relative;
+            z-index: 1;
+        }
+
+        .header {
+            text-align: center;
+            margin-bottom: 40px;
+        }
+
+        .logo {
+            width: 60px;
+            height: 60px;
+            background: linear-gradient(135deg, var(--blue), var(--navy-mid));
+            border-radius: 16px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 0 auto 18px;
+            box-shadow: 0 8px 24px rgba(14,165,233,0.25);
+        }
+
+        .logo svg { width: 28px; height: 28px; color: white; }
+
+        .header h1 {
+            font-size: 21px;
+            font-weight: 800;
+            color: white;
+            letter-spacing: -0.3px;
+            margin-bottom: 4px;
+        }
+
+        .header p {
+            font-size: 11px;
+            color: rgba(255,255,255,0.35);
+            text-transform: uppercase;
+            letter-spacing: 1.8px;
+            font-weight: 600;
+        }
+
+        .cards { display: flex; flex-direction: column; gap: 12px; }
+
+        .card-btn {
+            background: rgba(255,255,255,0.06);
+            border: 1px solid rgba(255,255,255,0.1);
+            border-radius: 14px;
+            padding: 20px;
+            display: flex;
+            align-items: center;
+            gap: 16px;
+            text-decoration: none;
+            transition: background 0.2s, border-color 0.2s, transform 0.15s;
+            cursor: pointer;
+        }
+
+        .card-btn:active {
+            transform: scale(0.98);
+            background: rgba(255,255,255,0.1);
+        }
+
+        .card-btn:hover {
+            background: rgba(255,255,255,0.09);
+            border-color: rgba(14,165,233,0.3);
+        }
+
+        .card-icon {
+            width: 44px;
+            height: 44px;
+            border-radius: 11px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            flex-shrink: 0;
+        }
+
+        .card-icon svg { width: 20px; height: 20px; }
+
+        .icon-morador { background: rgba(14,165,233,0.15); }
+        .icon-morador svg { color: var(--blue); }
+
+        .icon-portaria { background: rgba(255,255,255,0.08); }
+        .icon-portaria svg { color: rgba(255,255,255,0.6); }
+
+        .card-text { flex: 1; }
+
+        .card-text strong {
+            display: block;
+            font-size: 15px;
+            font-weight: 700;
+            color: white;
+            margin-bottom: 2px;
+        }
+
+        .card-text span {
+            font-size: 11px;
+            color: rgba(255,255,255,0.4);
+        }
+
+        .card-arrow {
+            color: rgba(255,255,255,0.2);
+            font-size: 18px;
+            font-weight: 300;
+        }
+
+        .divider {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            margin: 4px 0;
+        }
+
+        .divider::before, .divider::after {
+            content: '';
+            flex: 1;
+            height: 1px;
+            background: rgba(255,255,255,0.07);
+        }
+
+        .divider span {
+            font-size: 9px;
+            font-weight: 700;
+            color: rgba(255,255,255,0.2);
+            text-transform: uppercase;
+            letter-spacing: 1.5px;
+            white-space: nowrap;
+        }
+
+        footer {
+            margin-top: 36px;
+            font-size: 11px;
+            color: rgba(255,255,255,0.15);
+            text-align: center;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <div class="logo">
+                <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10"/>
+                </svg>
+            </div>
+            <h1>Condomínio Água Marinha</h1>
+            <p>Gestão de Encomendas</p>
+        </div>
+
+        <div class="cards">
+            <a class="card-btn" href="cadastro.html">
+                <div class="card-icon icon-morador">
+                    <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M15.75 6a3.75 3.75 0 11-7.5 0 3.75 3.75 0 017.5 0zM4.501 20.118a7.5 7.5 0 0114.998 0A17.933 17.933 0 0112 21.75c-2.676 0-5.216-.584-7.499-1.632z"/>
+                    </svg>
+                </div>
+                <div class="card-text">
+                    <strong>Sou Morador</strong>
+                    <span>Cadastrar meu WhatsApp</span>
+                </div>
+                <div class="card-arrow">›</div>
             </a>
 
-            <div class="relative py-4">
-                <div class="absolute inset-0 flex items-center"><div class="w-full border-t border-gray-200"></div></div>
-                <div class="relative flex justify-center text-sm"><span class="px-2 bg-white text-gray-400 font-bold italic text-xs">ACESSO RESTRITO</span></div>
-            </div>
+            <div class="divider"><span>Acesso Restrito</span></div>
 
-            <a href="portaria.html" class="block w-full bg-gray-800 hover:bg-black text-white text-center py-4 rounded-lg font-semibold text-lg transition shadow-md">
-                PORTARIA<br>
-                <span class="text-xs font-normal opacity-80 uppercase text-xs">Registro de Encomendas</span>
+            <a class="card-btn" href="portaria.html">
+                <div class="card-icon icon-portaria">
+                    <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M16.5 10.5V6.75a4.5 4.5 0 10-9 0v3.75m-.75 11.25h10.5a2.25 2.25 0 002.25-2.25v-6.75a2.25 2.25 0 00-2.25-2.25H6.75a2.25 2.25 0 00-2.25 2.25v6.75a2.25 2.25 0 002.25 2.25z"/>
+                    </svg>
+                </div>
+                <div class="card-text">
+                    <strong>Portaria</strong>
+                    <span>Registro de encomendas</span>
+                </div>
+                <div class="card-arrow">›</div>
             </a>
         </div>
 
-        <footer class="mt-12 text-center text-xs text-gray-400">
-            &copy; 2026 Sistema Interno Água Marinha
-        </footer>
+        <footer>© 2026 Sistema Interno Água Marinha</footer>
     </div>
 </body>
 </html>

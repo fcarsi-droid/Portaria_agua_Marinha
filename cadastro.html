@@ -3,135 +3,664 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Cadastro - Água Marinha</title>
-    <script src="https://cdn.tailwindcss.com"></script>
+    <title>Cadastro — Água Marinha</title>
     <script src="https://unpkg.com/@supabase/supabase-js@2"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --navy: #0f2236;
+            --navy-mid: #1e3a5f;
+            --blue: #0ea5e9;
+            --blue-dark: #0284c7;
+            --green: #10b981;
+            --green-dark: #059669;
+            --bg: #f1f5f9;
+            --surface: #ffffff;
+            --border: #e2e8f0;
+            --text: #1e293b;
+            --text-muted: #64748b;
+            --text-light: #94a3b8;
+        }
+
+        * { margin: 0; padding: 0; box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+
+        body {
+            font-family: 'Plus Jakarta Sans', sans-serif;
+            background: var(--bg);
+            color: var(--text);
+            min-height: 100vh;
+        }
+
+        /* ══ SENHA ══ */
+        #div-senha {
+            min-height: 100vh;
+            background: var(--navy);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 24px;
+        }
+
+        .senha-box {
+            width: 100%;
+            max-width: 340px;
+            text-align: center;
+        }
+
+        .senha-icon {
+            width: 60px;
+            height: 60px;
+            background: rgba(255,255,255,0.08);
+            border-radius: 16px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 0 auto 18px;
+        }
+
+        .senha-icon svg { width: 26px; height: 26px; color: rgba(255,255,255,0.6); }
+
+        .senha-box h1 {
+            font-size: 20px;
+            font-weight: 800;
+            color: white;
+            margin-bottom: 4px;
+        }
+
+        .senha-box p {
+            font-size: 11px;
+            color: rgba(255,255,255,0.35);
+            text-transform: uppercase;
+            letter-spacing: 1.5px;
+            font-weight: 600;
+            margin-bottom: 32px;
+        }
+
+        .senha-input {
+            width: 100%;
+            background: rgba(255,255,255,0.07);
+            border: 1.5px solid rgba(255,255,255,0.12);
+            border-radius: 12px;
+            padding: 14px 18px;
+            font-size: 16px;
+            color: white;
+            font-family: 'Plus Jakarta Sans', sans-serif;
+            outline: none;
+            text-align: center;
+            letter-spacing: 4px;
+            transition: border-color 0.2s;
+            margin-bottom: 12px;
+        }
+
+        .senha-input:focus { border-color: var(--blue); }
+        .senha-input::placeholder { letter-spacing: 2px; font-size: 13px; color: rgba(255,255,255,0.25); }
+
+        .btn-entrar {
+            width: 100%;
+            background: var(--blue);
+            color: white;
+            border: none;
+            border-radius: 12px;
+            padding: 14px;
+            font-size: 14px;
+            font-weight: 700;
+            font-family: 'Plus Jakarta Sans', sans-serif;
+            cursor: pointer;
+            transition: background 0.2s, transform 0.1s;
+        }
+
+        .btn-entrar:active { transform: scale(0.98); background: var(--blue-dark); }
+
+        .senha-erro {
+            font-size: 13px;
+            color: #f87171;
+            margin-top: 10px;
+            display: none;
+        }
+
+        .voltar-link {
+            display: block;
+            margin-top: 24px;
+            font-size: 12px;
+            color: rgba(255,255,255,0.25);
+            text-decoration: none;
+        }
+
+        /* ══ FORMULÁRIO ══ */
+        #div-form { display: none; }
+
+        .topbar {
+            background: var(--navy);
+            padding: 14px 16px;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .topbar a {
+            color: rgba(255,255,255,0.5);
+            text-decoration: none;
+            font-size: 20px;
+            line-height: 1;
+            display: flex;
+        }
+
+        .topbar a svg { width: 20px; height: 20px; }
+
+        .topbar h1 { font-size: 15px; font-weight: 700; color: white; }
+        .topbar small { font-size: 10px; color: rgba(255,255,255,0.4); display: block; margin-top: 1px; }
+
+        .page-content {
+            padding: 16px;
+            max-width: 500px;
+            margin: 0 auto;
+            padding-bottom: 40px;
+        }
+
+        .card {
+            background: var(--surface);
+            border-radius: 16px;
+            overflow: hidden;
+            box-shadow: 0 1px 4px rgba(0,0,0,0.06), 0 4px 16px rgba(0,0,0,0.04);
+        }
+
+        .card-header {
+            padding: 14px 16px;
+            border-bottom: 1px solid var(--border);
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .card-header svg { width: 18px; height: 18px; color: var(--blue); flex-shrink: 0; }
+        .card-header h2 { font-size: 14px; font-weight: 700; }
+
+        .card-body { padding: 16px; }
+
+        .field { margin-bottom: 14px; }
+
+        .field label {
+            display: block;
+            font-size: 10px;
+            font-weight: 700;
+            color: var(--text-muted);
+            text-transform: uppercase;
+            letter-spacing: 0.8px;
+            margin-bottom: 5px;
+        }
+
+        .field input, .field select {
+            width: 100%;
+            background: var(--bg);
+            border: 1.5px solid var(--border);
+            border-radius: 10px;
+            padding: 12px 14px;
+            font-size: 15px;
+            font-family: 'Plus Jakarta Sans', sans-serif;
+            color: var(--text);
+            outline: none;
+            transition: border-color 0.2s, background 0.2s;
+            -webkit-appearance: none;
+        }
+
+        .field input:focus, .field select:focus {
+            border-color: var(--blue);
+            background: white;
+        }
+
+        .fields-row { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+
+        .field-hint {
+            font-size: 11px;
+            color: var(--text-light);
+            margin-top: 5px;
+        }
+
+        /* Preview */
+        .preview-box {
+            background: #f0f9ff;
+            border: 1.5px solid #bae6fd;
+            border-radius: 10px;
+            padding: 12px 14px;
+            margin-bottom: 14px;
+            display: none;
+        }
+
+        .preview-box.ativo { display: block; }
+
+        .preview-box p {
+            font-size: 10px;
+            font-weight: 700;
+            color: var(--blue-dark);
+            text-transform: uppercase;
+            letter-spacing: 0.8px;
+            margin-bottom: 6px;
+        }
+
+        .preview-box .preview-linha {
+            font-size: 13px;
+            color: var(--navy);
+            font-weight: 600;
+            margin-bottom: 2px;
+        }
+
+        .preview-box .preview-sub {
+            font-size: 12px;
+            color: var(--text-muted);
+        }
+
+        /* Botões */
+        .btn-principal {
+            width: 100%;
+            background: var(--navy);
+            color: white;
+            border: none;
+            border-radius: 12px;
+            padding: 15px;
+            font-size: 14px;
+            font-weight: 700;
+            font-family: 'Plus Jakarta Sans', sans-serif;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            transition: background 0.2s, transform 0.1s;
+            margin-bottom: 8px;
+        }
+
+        .btn-principal svg { width: 16px; height: 16px; }
+        .btn-principal:active { transform: scale(0.98); }
+
+        .btn-secundario {
+            width: 100%;
+            background: none;
+            border: 1.5px solid var(--border);
+            border-radius: 12px;
+            padding: 13px;
+            font-size: 13px;
+            font-weight: 600;
+            color: var(--text-muted);
+            font-family: 'Plus Jakarta Sans', sans-serif;
+            cursor: pointer;
+            display: none;
+        }
+
+        /* Modal confirmação */
+        .modal-overlay {
+            position: fixed;
+            inset: 0;
+            background: rgba(15,34,54,0.65);
+            display: flex;
+            align-items: flex-end;
+            justify-content: center;
+            z-index: 500;
+            opacity: 0;
+            pointer-events: none;
+            transition: opacity 0.25s;
+            backdrop-filter: blur(3px);
+        }
+
+        .modal-overlay.aberto { opacity: 1; pointer-events: all; }
+
+        .modal {
+            background: white;
+            border-radius: 20px 20px 0 0;
+            padding: 20px 20px 36px;
+            width: 100%;
+            max-width: 500px;
+            transform: translateY(50px);
+            transition: transform 0.3s ease;
+        }
+
+        .modal-overlay.aberto .modal { transform: translateY(0); }
+
+        .modal-handle {
+            width: 36px;
+            height: 4px;
+            background: var(--border);
+            border-radius: 2px;
+            margin: 0 auto 20px;
+        }
+
+        .modal h3 { font-size: 16px; font-weight: 800; margin-bottom: 4px; }
+        .modal p { font-size: 13px; color: var(--text-muted); margin-bottom: 16px; }
+
+        .modal-dados {
+            background: var(--bg);
+            border-radius: 10px;
+            padding: 14px;
+            margin-bottom: 18px;
+        }
+
+        .modal-dado {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 5px 0;
+            border-bottom: 1px solid var(--border);
+            font-size: 13px;
+        }
+
+        .modal-dado:last-child { border-bottom: none; }
+        .modal-dado span { color: var(--text-muted); font-size: 11px; font-weight: 600; text-transform: uppercase; }
+        .modal-dado strong { font-weight: 700; color: var(--text); }
+
+        .modal-btns { display: flex; gap: 8px; }
+
+        .btn-modal-ok {
+            flex: 1;
+            background: var(--green);
+            color: white;
+            border: none;
+            border-radius: 12px;
+            padding: 14px;
+            font-size: 14px;
+            font-weight: 700;
+            font-family: 'Plus Jakarta Sans', sans-serif;
+            cursor: pointer;
+        }
+
+        .btn-modal-ok:active { background: var(--green-dark); }
+
+        .btn-modal-cancel {
+            flex: 1;
+            background: none;
+            border: 1.5px solid var(--border);
+            border-radius: 12px;
+            padding: 13px;
+            font-size: 13px;
+            font-weight: 600;
+            color: var(--text-muted);
+            font-family: 'Plus Jakarta Sans', sans-serif;
+            cursor: pointer;
+        }
+
+        /* Status */
+        .status-box {
+            border-radius: 10px;
+            padding: 14px;
+            font-size: 13px;
+            font-weight: 600;
+            text-align: center;
+            margin-top: 12px;
+            display: none;
+            line-height: 1.5;
+        }
+
+        .status-box.info { background: #f0f9ff; color: var(--blue-dark); border: 1.5px solid #bae6fd; }
+        .status-box.ok { background: #f0fdf4; color: #166534; border: 1.5px solid #bbf7d0; }
+        .status-box.aviso { background: #fffbeb; color: #92400e; border: 1.5px solid #fde68a; }
+        .status-box.erro { background: #fef2f2; color: #991b1b; border: 1.5px solid #fecaca; }
+
+        /* Toast */
+        .toast {
+            position: fixed;
+            bottom: 20px;
+            left: 50%;
+            transform: translateX(-50%) translateY(80px);
+            background: var(--navy);
+            color: white;
+            padding: 11px 18px;
+            border-radius: 10px;
+            font-size: 13px;
+            font-weight: 600;
+            z-index: 1000;
+            transition: transform 0.3s ease;
+            white-space: nowrap;
+            pointer-events: none;
+        }
+
+        .toast.show { transform: translateX(-50%) translateY(0); }
+
+        .hidden { display: none !important; }
+    </style>
 </head>
-<body class="bg-gray-100 min-h-screen flex items-center justify-center p-4 text-gray-800">
+<body>
 
-    <div id="divSenha" class="max-w-md w-full bg-white p-8 rounded-xl shadow-lg border-t-8 border-gray-800 text-center">
-        <h2 class="text-xl font-bold mb-4 uppercase">Acesso Morador</h2>
-        <input type="password" id="inputSenha" placeholder="Senha do Condomínio" class="w-full border-2 p-3 rounded-lg mb-4 text-center outline-none focus:border-blue-500 font-bold">
-        <button onclick="acessar()" class="w-full bg-gray-800 text-white py-3 rounded-lg font-bold hover:bg-black transition">ENTRAR</button>
+<!-- ══ SENHA ══ -->
+<div id="div-senha">
+    <div class="senha-box">
+        <div class="senha-icon">
+            <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M15.75 6a3.75 3.75 0 11-7.5 0 3.75 3.75 0 017.5 0zM4.501 20.118a7.5 7.5 0 0114.998 0A17.933 17.933 0 0112 21.75c-2.676 0-5.216-.584-7.499-1.632z"/>
+            </svg>
+        </div>
+        <h1>Área do Morador</h1>
+        <p>Água Marinha</p>
+        <input type="password" class="senha-input" id="input-senha" placeholder="Senha do condomínio">
+        <button class="btn-entrar" onclick="acessar()">Entrar</button>
+        <p class="senha-erro" id="senha-erro">Senha incorreta. Tente novamente.</p>
+        <a href="index.html" class="voltar-link">← Voltar ao início</a>
     </div>
+</div>
 
-    <div id="divForm" class="max-w-md w-full bg-white p-8 rounded-xl shadow-lg border-t-8 border-blue-600 hidden">
-        <h1 class="text-2xl font-bold text-center mb-1">Água Marinha</h1>
-        <p class="text-center text-gray-400 text-xs mb-6 font-bold uppercase tracking-widest italic">Cadastro de Notificação</p>
-
-        <form id="meuForm" class="space-y-4">
-            <div>
-                <label class="block text-xs font-bold uppercase text-gray-500 mb-1 italic">Nome Completo</label>
-                <input type="text" id="nome" required class="w-full border-2 p-3 rounded-lg outline-none focus:border-blue-500 uppercase font-bold text-gray-700">
-            </div>
-
-            <div class="grid grid-cols-2 gap-4">
-                <div>
-                    <label class="block text-xs font-bold uppercase text-gray-500 mb-1 italic">Bloco</label>
-                    <select id="bloco" required class="w-full border-2 p-3 rounded-lg outline-none focus:border-blue-500 bg-white font-bold text-gray-700">
-                        <option value="">...</option>
-                        <option value="A">A</option><option value="B">B</option><option value="C">C</option>
-                        <option value="D">D</option><option value="E">E</option><option value="F">F</option>
-                    </select>
-                </div>
-                <div>
-                    <label class="block text-xs font-bold uppercase text-gray-500 mb-1 italic">Apartamento</label>
-                    <select id="apto" required class="w-full border-2 p-3 rounded-lg outline-none focus:border-blue-500 bg-white font-bold text-gray-700">
-                        <option value="">...</option>
-                        <script>
-                            for(let i=1; i<=74; i++) {
-                                let n = i < 10 ? '0'+i : i;
-                                document.write(`<option value="${n}">${n}</option>`);
-                            }
-                        </script>
-                    </select>
-                </div>
-            </div>
-
-            <div>
-                <label class="block text-xs font-bold uppercase text-gray-500 mb-1 italic">WhatsApp (com DDD)</label>
-                <input type="text" id="whatsapp" placeholder="(19) 99999-9999" required class="w-full border-2 p-3 rounded-lg outline-none focus:border-blue-500 font-bold text-gray-700">
-            </div>
-
-            <button type="button" onclick="abrirPopup()" class="w-full bg-blue-600 text-white py-4 rounded-lg font-bold hover:bg-blue-700 shadow-md uppercase transition">CADASTRAR</button>
-        </form>
-        <div id="status" class="mt-4 text-center p-4 rounded-lg hidden font-bold text-sm border-2"></div>
-    </div>
-
-    <div id="modalConfirmar" class="fixed inset-0 bg-black/60 flex items-center justify-center hidden z-50 p-4">
-        <div class="bg-white p-6 rounded-2xl max-w-sm w-full">
-            <h3 class="font-bold text-lg mb-4 border-b pb-2">Verifique seus dados:</h3>
-            <div id="resumoDados" class="space-y-3 text-sm text-gray-700 mb-6 bg-gray-50 p-4 rounded-xl"></div>
-            <div class="flex gap-3">
-                <button onclick="fecharPopup()" class="flex-1 bg-gray-200 py-3 rounded-xl font-bold text-gray-500">CORRIGIR</button>
-                <button id="btnFinal" onclick="enviarCadastro()" class="flex-1 bg-green-600 text-white py-3 rounded-xl font-bold">CONFIRMAR</button>
-            </div>
+<!-- ══ FORMULÁRIO ══ -->
+<div id="div-form">
+    <div class="topbar">
+        <a href="index.html">
+            <svg fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M10.5 19.5L3 12m0 0l7.5-7.5M3 12h18"/>
+            </svg>
+        </a>
+        <div>
+            <h1>Meu Cadastro</h1>
+            <small>Notificações de encomenda</small>
         </div>
     </div>
 
-    <script>
-        const supabaseUrl = 'https://esegzalccqvoypdpencs.supabase.co';
-        const supabaseKey = 'sb_publishable_kuJIAQ5crRqZlNO5spRdJQ__G9QLrjI';
-        const client = supabase.createClient(supabaseUrl, supabaseKey);
+    <div class="page-content">
+        <div class="card">
+            <div class="card-header">
+                <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M10.5 1.5H8.25A2.25 2.25 0 006 3.75v16.5a2.25 2.25 0 002.25 2.25h7.5A2.25 2.25 0 0018 20.25V3.75a2.25 2.25 0 00-2.25-2.25H13.5m-3 0V3h3V1.5m-3 0h3m-3 8.25h3m-3 3h3m-6 3h.008v.008H9v-.008z"/>
+                </svg>
+                <h2>Dados para Notificação</h2>
+            </div>
+            <div class="card-body">
 
-        function acessar() {
-            if(document.getElementById('inputSenha').value === 'morador2026') {
-                document.getElementById('divSenha').classList.add('hidden');
-                document.getElementById('divForm').classList.remove('hidden');
-            } else { alert('Senha incorreta!'); }
+                <div class="field">
+                    <label>Nome Completo</label>
+                    <input type="text" id="nome" placeholder="Seu nome completo" autocomplete="name" oninput="atualizarPreview()">
+                </div>
+
+                <div class="fields-row">
+                    <div class="field">
+                        <label>Bloco</label>
+                        <select id="bloco" onchange="atualizarPreview()">
+                            <option value="">–</option>
+                            <option>A</option><option>B</option><option>C</option>
+                            <option>D</option><option>E</option><option>F</option>
+                        </select>
+                    </div>
+                    <div class="field">
+                        <label>Apartamento</label>
+                        <select id="apto" onchange="atualizarPreview()">
+                            <option value="">–</option>
+                        </select>
+                    </div>
+                </div>
+
+                <div class="field">
+                    <label>WhatsApp</label>
+                    <input type="tel" id="whatsapp" placeholder="(19) 99999-9999" inputmode="tel" oninput="atualizarPreview()">
+                    <p class="field-hint">Você receberá alertas neste número quando uma encomenda chegar.</p>
+                </div>
+
+                <div class="preview-box" id="preview-box">
+                    <p>Confirme seus dados</p>
+                    <div class="preview-linha" id="prev-nome"></div>
+                    <div class="preview-sub" id="prev-local"></div>
+                    <div class="preview-sub" id="prev-wpp"></div>
+                </div>
+
+                <button class="btn-principal" onclick="abrirModal()">
+                    <svg fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M4.5 12.75l6 6 9-13.5"/>
+                    </svg>
+                    Cadastrar
+                </button>
+                <button class="btn-secundario" id="btn-corrigir" onclick="focarNome()">Corrigir dados</button>
+
+                <div class="status-box" id="status-box"></div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Modal confirmação -->
+<div class="modal-overlay" id="modal-overlay">
+    <div class="modal">
+        <div class="modal-handle"></div>
+        <h3>Confirmar Cadastro</h3>
+        <p>Verifique se os dados estão corretos antes de salvar.</p>
+        <div class="modal-dados" id="modal-dados"></div>
+        <div class="modal-btns">
+            <button class="btn-modal-cancel" onclick="fecharModal()">Corrigir</button>
+            <button class="btn-modal-ok" onclick="enviarCadastro()">Confirmar</button>
+        </div>
+    </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+    const supabaseUrl = 'https://esegzalccqvoypdpencs.supabase.co';
+    const supabaseKey = 'sb_publishable_kuJIAQ5crRqZlNO5spRdJQ__G9QLrjI';
+    const client = supabase.createClient(supabaseUrl, supabaseKey);
+
+    // Gera opções de apartamento
+    const selApto = document.getElementById('apto');
+    for (let i = 1; i <= 74; i++) {
+        const n = i < 10 ? '0' + i : String(i);
+        selApto.innerHTML += `<option value="${n}">${n}</option>`;
+    }
+
+    // ── SENHA ──
+    function acessar() {
+        if (document.getElementById('input-senha').value === 'morador2026') {
+            document.getElementById('div-senha').style.display = 'none';
+            document.getElementById('div-form').style.display = 'block';
+        } else {
+            document.getElementById('senha-erro').style.display = 'block';
+            document.getElementById('input-senha').value = '';
+        }
+    }
+
+    document.getElementById('input-senha').addEventListener('keydown', e => {
+        if (e.key === 'Enter') acessar();
+    });
+
+    // ── PREVIEW ──
+    function atualizarPreview() {
+        const nome = document.getElementById('nome').value.trim();
+        const bloco = document.getElementById('bloco').value;
+        const apto = document.getElementById('apto').value;
+        const wpp = document.getElementById('whatsapp').value.trim();
+        const box = document.getElementById('preview-box');
+        const btn = document.getElementById('btn-corrigir');
+
+        if (nome && bloco && apto && wpp) {
+            document.getElementById('prev-nome').textContent = nome.toUpperCase();
+            document.getElementById('prev-local').textContent = `Bloco ${bloco} · Apto ${apto}`;
+            document.getElementById('prev-wpp').textContent = `WhatsApp: ${wpp}`;
+            box.classList.add('ativo');
+            btn.style.display = 'block';
+        } else {
+            box.classList.remove('ativo');
+            btn.style.display = 'none';
+        }
+    }
+
+    function focarNome() { document.getElementById('nome').focus(); }
+
+    // ── MODAL ──
+    function abrirModal() {
+        const nome = document.getElementById('nome').value.trim();
+        const bloco = document.getElementById('bloco').value;
+        const apto = document.getElementById('apto').value;
+        const wpp = document.getElementById('whatsapp').value.trim();
+
+        if (!nome || !bloco || !apto || !wpp) {
+            toast('Preencha todos os campos');
+            return;
         }
 
-        function abrirPopup() {
-            const nome = document.getElementById('nome').value.toUpperCase();
-            const bloco = document.getElementById('bloco').value;
-            const apto = document.getElementById('apto').value;
-            const zap = document.getElementById('whatsapp').value;
-            if(!nome || !bloco || !apto || !zap) return alert("Preencha todos os campos.");
-            
-            document.getElementById('resumoDados').innerHTML = `
-                <p><strong>Nome:</strong> ${nome}</p>
-                <p><strong>Unidade:</strong> Bloco ${bloco} - Apto ${apto}</p>
-                <p><strong>WhatsApp:</strong> ${zap}</p>
-            `;
-            document.getElementById('modalConfirmar').classList.remove('hidden');
-        }
+        document.getElementById('modal-dados').innerHTML = `
+            <div class="modal-dado"><span>Nome</span><strong>${nome.toUpperCase()}</strong></div>
+            <div class="modal-dado"><span>Unidade</span><strong>Bloco ${bloco} · Apto ${apto}</strong></div>
+            <div class="modal-dado"><span>WhatsApp</span><strong>${wpp}</strong></div>
+        `;
+        document.getElementById('modal-overlay').classList.add('aberto');
+    }
 
-        function fecharPopup() { document.getElementById('modalConfirmar').classList.add('hidden'); }
+    function fecharModal() {
+        document.getElementById('modal-overlay').classList.remove('aberto');
+    }
 
-        async function enviarCadastro() {
-            fecharPopup();
-            const status = document.getElementById('status');
-            const bloco = document.getElementById('bloco').value;
-            const apto = document.getElementById('apto').value;
-            const nome = document.getElementById('nome').value.toUpperCase().trim();
-            let tel = document.getElementById('whatsapp').value.replace(/\D/g, '');
-            if (!tel.startsWith('55')) tel = '55' + tel;
+    document.getElementById('modal-overlay').addEventListener('click', function(e) {
+        if (e.target === this) fecharModal();
+    });
 
-            status.innerText = "Processando...";
-            status.className = "mt-4 text-center p-4 rounded-lg block bg-blue-50 text-blue-800 border-blue-200 border-2";
-            status.classList.remove('hidden');
+    // ── SALVAR ──
+    async function enviarCadastro() {
+        fecharModal();
+        const status = document.getElementById('status-box');
+        const bloco = document.getElementById('bloco').value;
+        const apto = document.getElementById('apto').value;
+        const nome = document.getElementById('nome').value.toUpperCase().trim();
+        let tel = document.getElementById('whatsapp').value.replace(/\D/g, '');
+        if (!tel.startsWith('55')) tel = '55' + tel;
 
-            try {
-                const { data: existe } = await client.from('moradores').select('id')
-                    .eq('bloco', bloco).eq('apartamento', apto).maybeSingle();
+        status.textContent = 'Processando...';
+        status.className = 'status-box info';
+        status.style.display = 'block';
 
-                if (existe) {
-                    status.innerHTML = `⚠️ Esse apartamento já possui um morador cadastrado. Verifique se as informações estão corretas. Caso estejam, entrar em contato com o síndico para que seja verificado.`;
-                    status.className = "mt-4 text-center p-4 rounded-lg block bg-yellow-50 text-yellow-800 border-yellow-400 border-2";
-                    return;
-                }
+        try {
+            const { data: existe } = await client
+                .from('moradores')
+                .select('id')
+                .eq('bloco', bloco)
+                .eq('apartamento', apto)
+                .maybeSingle();
 
-                const { error } = await client.from('moradores').insert([{ bloco, apartamento: apto, nome, whatsapp: tel }]);
-                if (error) throw error;
-
-                status.innerText = "✅ CADASTRO REALIZADO COM SUCESSO!";
-                status.className = "mt-4 text-center p-4 rounded-lg block bg-green-50 text-green-800 border-green-500 border-2";
-                document.getElementById('meuForm').reset();
-            } catch (err) {
-                status.innerText = "❌ Ocorreu um erro ao salvar. Tente novamente.";
-                status.className = "mt-4 text-center p-4 rounded-lg block bg-red-50 text-red-800 border-red-500 border-2";
+            if (existe) {
+                status.innerHTML = '⚠️ Este apartamento já possui cadastro. Se os dados estiverem incorretos, entre em contato com o síndico.';
+                status.className = 'status-box aviso';
+                status.style.display = 'block';
+                return;
             }
+
+            const { error } = await client
+                .from('moradores')
+                .insert([{ bloco, apartamento: apto, nome, whatsapp: tel }]);
+
+            if (error) throw error;
+
+            status.textContent = '✓ Cadastro realizado com sucesso!';
+            status.className = 'status-box ok';
+            status.style.display = 'block';
+            document.getElementById('nome').value = '';
+            document.getElementById('bloco').value = '';
+            document.getElementById('apto').value = '';
+            document.getElementById('whatsapp').value = '';
+            document.getElementById('preview-box').classList.remove('ativo');
+            document.getElementById('btn-corrigir').style.display = 'none';
+
+        } catch (err) {
+            status.textContent = '✕ Erro ao salvar. Tente novamente.';
+            status.className = 'status-box erro';
+            status.style.display = 'block';
         }
-    </script>
+    }
+
+    // ── TOAST ──
+    function toast(msg) {
+        const el = document.getElementById('toast');
+        el.textContent = msg;
+        el.className = 'toast show';
+        setTimeout(() => el.className = 'toast', 3000);
+    }
+</script>
 </body>
 </html>
