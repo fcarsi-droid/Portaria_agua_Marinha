@@ -590,8 +590,9 @@
     function toggleDetalhe(gi) {
         const el = document.getElementById('dup-' + gi);
         const chev = document.getElementById('chev-' + gi);
-        el.classList.toggle('aberto');
-        chev.classList.toggle('aberto');
+        const aberto = el.style.display === 'block';
+        el.style.display = aberto ? 'none' : 'block';
+        chev.textContent = aberto ? '▾' : '▴';
     }
 
     // ── RANKING: QUEM NÃO DÁ BAIXA (encomendas DISPONÍVEL mais antigas) ──
