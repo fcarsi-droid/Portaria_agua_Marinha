@@ -267,6 +267,41 @@
         }
 
         .hidden { display: none !important; }
+
+        .alerta-item { cursor: pointer; }
+        .alerta-item:hover { background: #fffbeb; }
+
+        .alerta-detalhes {
+            display: none;
+            background: #fafafa;
+            border-top: 1px solid var(--border);
+            padding: 10px 16px 10px 58px;
+        }
+
+        .alerta-detalhes.aberto { display: block; }
+
+        .detalhe-linha {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            padding: 5px 0;
+            border-bottom: 1px dashed var(--border);
+            font-size: 12px;
+            color: var(--text-muted);
+        }
+
+        .detalhe-linha:last-child { border-bottom: none; }
+        .detalhe-linha strong { color: var(--text); font-weight: 700; }
+        .detalhe-linha svg { width: 12px; height: 12px; flex-shrink: 0; }
+
+        .alerta-chevron {
+            color: var(--text-light);
+            font-size: 14px;
+            transition: transform 0.2s;
+            flex-shrink: 0;
+        }
+
+        .alerta-chevron.aberto { transform: rotate(180deg); }
     </style>
 </head>
 <body>
@@ -485,7 +520,7 @@
         // Ordenar por mais duplicados
         duplicados.sort((a,b) => b.items.length - a.items.length);
 
-        cont.innerHTML = duplicados.map(g => {
+        cont.innerHTML = duplicados.map((g, gi) => {
             const totalVol = g.items.reduce((s, i) => s + parseInt(i.quantidade), 0);
             const tInicio = new Date(g.items[0].criado_em);
             const tFim = new Date(g.items[g.items.length - 1].criado_em);
@@ -494,18 +529,39 @@
             const hFim = tFim.toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' });
             const diffMin = Math.round((tFim - tInicio) / 60000);
             const intervalo = diffMin === 0 ? 'mesmo minuto' : `${diffMin} min de intervalo`;
-            return `
-            <div class="alerta-item">
-                <div class="alerta-icon">
+
+            const detalhes = g.items.map((item, idx) => {
+                const h = new Date(item.criado_em).toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit', second: '2-digit' });
+                return `
+                <div class="detalhe-linha">
                     <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" d="M12 9v3.75m9-.75a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M12 6v6h4.5m4.5 0a9 9 0 11-18 0 9 9 0 0118 0z"/>
                     </svg>
+                    <span>Registro ${idx + 1}</span>
+                    <strong>${h}</strong>
+                    <span>·</span>
+                    <span>${item.quantidade} vol.</span>
+                    <span>·</span>
+                    <span style="color:${item.status === 'ENTREGUE' ? 'var(--green)' : 'var(--amber)'}; font-weight:700">${item.status}</span>
+                </div>`;
+            }).join('');
+
+            return `
+            <div>
+                <div class="alerta-item" onclick="toggleDetalhe('dup-${gi}')">
+                    <div class="alerta-icon">
+                        <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M12 9v3.75m9-.75a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                        </svg>
+                    </div>
+                    <div class="alerta-info">
+                        <div class="alerta-nome">${g.apto} · ${g.nome}</div>
+                        <div class="alerta-sub">${dia} · ${hInicio}–${hFim} · ${intervalo} · ${totalVol} vol. no total</div>
+                    </div>
+                    <div class="alerta-qtd">${g.items.length}×</div>
+                    <div class="alerta-chevron" id="chev-dup-${gi}">▾</div>
                 </div>
-                <div class="alerta-info">
-                    <div class="alerta-nome">${g.apto} · ${g.nome}</div>
-                    <div class="alerta-sub">${dia} · ${hInicio}–${hFim} · ${intervalo} · ${totalVol} vol. no total</div>
-                </div>
-                <div class="alerta-qtd">${g.items.length}×</div>
+                <div class="alerta-detalhes" id="dup-${gi}">${detalhes}</div>
             </div>`;
         }).join('');
     }
@@ -556,6 +612,14 @@
                 <div class="linha-badge ${pctPortaria >= 70 ? 'badge-red' : pctPortaria >= 40 ? 'badge-amber' : 'badge-green'}">${pctPortaria}%</div>
             </div>`;
         }).join('');
+    }
+
+    // ── TOGGLE DETALHE ──
+    function toggleDetalhe(id) {
+        const el = document.getElementById(id);
+        const chev = document.getElementById('chev-' + id);
+        el.classList.toggle('aberto');
+        chev.classList.toggle('aberto');
     }
 
     // ── RANKING: QUEM NÃO DÁ BAIXA (encomendas DISPONÍVEL mais antigas) ──
