@@ -206,10 +206,92 @@
             line-height: 1.5;
         }
 
+        .btn-engano-wrap {
+            margin-top: 20px;
+            padding-top: 20px;
+            border-top: 1px solid var(--border);
+        }
+
+        .btn-engano-label {
+            font-size: 11px;
+            color: var(--text-light);
+            text-align: center;
+            line-height: 1.5;
+            margin-bottom: 10px;
+        }
+
+        .btn-engano {
+            width: 100%;
+            background: none;
+            border: 1.5px solid #fecaca;
+            border-radius: 12px;
+            padding: 13px 16px;
+            font-size: 13px;
+            font-weight: 600;
+            color: var(--red);
+            font-family: 'Plus Jakarta Sans', sans-serif;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            transition: background 0.2s;
+            line-height: 1.4;
+            text-align: center;
+        }
+
+        .btn-engano:active { background: #fef2f2; }
+        .btn-engano svg { width: 16px; height: 16px; flex-shrink: 0; }
+
+        .btn-engano-wrap {
+            margin-top: 20px;
+            padding-top: 20px;
+            border-top: 1px solid var(--border);
+        }
+
+        .btn-engano-label {
+            font-size: 11px;
+            color: var(--text-light);
+            text-align: center;
+            line-height: 1.5;
+            margin-bottom: 10px;
+        }
+
+        .btn-engano {
+            width: 100%;
+            background: none;
+            border: 1.5px solid #fecaca;
+            border-radius: 12px;
+            padding: 13px 16px;
+            font-size: 13px;
+            font-weight: 600;
+            color: var(--red);
+            font-family: 'Plus Jakarta Sans', sans-serif;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            transition: background 0.2s;
+        }
+
+        .btn-engano:active { background: #fef2f2; }
+        .btn-engano svg { width: 16px; height: 16px; flex-shrink: 0; }
+
+        .engano-box { text-align: center; padding: 8px 0; }
+        .engano-box svg { width: 48px; height: 48px; color: var(--amber); margin-bottom: 16px; }
+        .engano-box h3 { font-size: 18px; font-weight: 800; color: var(--text); margin-bottom: 8px; }
+        .engano-box p { font-size: 14px; color: var(--text-muted); line-height: 1.6; }
+
         .sucesso-box { text-align: center; padding: 8px 0; }
         .sucesso-box svg { width: 48px; height: 48px; color: var(--green); margin-bottom: 16px; }
         .sucesso-box h3 { font-size: 18px; font-weight: 800; color: var(--text); margin-bottom: 8px; }
         .sucesso-box p { font-size: 14px; color: var(--text-muted); line-height: 1.6; }
+
+        .engano-box { text-align: center; padding: 8px 0; }
+        .engano-box svg { width: 48px; height: 48px; color: var(--amber); margin-bottom: 16px; }
+        .engano-box h3 { font-size: 18px; font-weight: 800; color: var(--text); margin-bottom: 8px; }
+        .engano-box p { font-size: 14px; color: var(--text-muted); line-height: 1.6; }
 
         /* ══════════ PORTEIRO ══════════ */
         #visao-porteiro { display: none; }
@@ -724,14 +806,33 @@
                     </svg>
                     Confirmar Retirada
                 </button>
-                <p class="morador-aviso">Esta ação registra o recebimento dos volumes na portaria. Caso tenha confirmado por acidente, entre em contato com a portaria.</p>
+                <p class="morador-aviso">Esta ação registra o recebimento dos volumes na portaria.</p>
+
+                <div class="btn-engano-wrap">
+                    <p class="btn-engano-label">Marque abaixo se a encomenda foi entregue por engano a você e já foi devolvida à portaria.</p>
+                    <button class="btn-engano" onclick="registrarEngano()">
+                        <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M12 9v3.75m-9.303 3.376c-.866 1.5.217 3.374 1.948 3.374h14.71c1.73 0 2.813-1.874 1.948-3.374L13.949 3.378c-.866-1.5-3.032-1.5-3.898 0L2.697 16.126zM12 15.75h.007v.008H12v-.008z"/>
+                        </svg>
+                        Esta encomenda não era minha — já devolvi à portaria
+                    </button>
+                </div>
             </div>
+
             <div id="conteudo-sucesso" class="hidden sucesso-box">
                 <svg fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" d="M9 12.75L11.25 15 15 9.75M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
                 </svg>
                 <h3>Recebimento confirmado!</h3>
                 <p>Obrigado por confirmar. Isso nos ajuda a manter o condomínio mais organizado e seguro.</p>
+            </div>
+
+            <div id="conteudo-engano" class="hidden engano-box">
+                <svg fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M12 9v3.75m-9.303 3.376c-.866 1.5.217 3.374 1.948 3.374h14.71c1.73 0 2.813-1.874 1.948-3.374L13.949 3.378c-.866-1.5-3.032-1.5-3.898 0L2.697 16.126zM12 15.75h.007v.008H12v-.008z"/>
+                </svg>
+                <h3>Registrado</h3>
+                <p>Anotamos que esta encomenda foi entregue a você por engano e já foi devolvida à portaria. A portaria irá verificar o destinatário correto.</p>
             </div>
         </div>
     </div>
@@ -942,6 +1043,28 @@
         if (!error) mostrarSucesso();
     }
 
+    async function registrarEngano() {
+        const { error, data: encData } = await supabaseClient
+            .from('encomendas')
+            .update({ status: 'ENTREGUE', baixado_pela: 'ENGANO', baixado_em: new Date().toISOString() })
+            .eq('id', encomendaId)
+            .select('moradores(nome, bloco, apartamento)')
+            .single();
+
+        if (!error) {
+            const m = encData.moradores;
+            const msg = encodeURIComponent(
+                '\ud83d\udce6 *CONDOMÍNIO ÁGUA MARINHA*\n\n' +
+                '\u26a0\ufe0f A encomenda registrada para *' + m.nome + '* \u2014 Bloco ' + m.bloco + ', Apto ' + m.apartamento + ' \u2014 foi devolvida pelo morador, pois foi entregue por engano.\n\n' +
+                'Por favor, verifique o destinatário correto e crie um novo registro.\n\n' +
+                '*Sistema Água Marinha*'
+            );
+            window.open('https://wa.me/5519992035326?text=' + msg, '_blank');
+            document.getElementById('conteudo-pendente').classList.add('hidden');
+            document.getElementById('conteudo-engano').classList.remove('hidden');
+        }
+    }
+
     function mostrarSucesso() {
         document.getElementById('conteudo-pendente').classList.add('hidden');
         document.getElementById('conteudo-sucesso').classList.remove('hidden');
@@ -1028,7 +1151,7 @@
     async function carregarPendencias() {
         const { data } = await supabaseClient
             .from('encomendas')
-            .select('id, quantidade, criado_em, moradores(nome, bloco, apartamento)')
+            .select('id, quantidade, criado_em, moradores(nome, bloco, apartamento, whatsapp)')
             .eq('status', 'DISPONÍVEL')
             .order('criado_em', { ascending: true });
 
@@ -1100,7 +1223,7 @@
                             </div>
                         </div>
                         <span class="vol-badge">${item.quantidade} vol.</span>
-                        <button class="btn-baixa" onclick="abrirModal('${item.id}', '${apto}', '${m.nome.replace(/'/g,"\\'")}', ${item.quantidade})">BAIXA</button>
+                        <button class="btn-baixa" onclick="abrirModalById('${item.id}')">BAIXA</button>
                     </div>`;
             });
 
@@ -1111,10 +1234,14 @@
     }
 
     // ── MODAL BAIXA ──
-    function abrirModal(id, apto, nome, qtd) {
-        itemParaBaixa = id;
+    function abrirModalById(id) {
+        const enc = window.pendenciasGlobal.find(e => String(e.id) === String(id));
+        if (!enc) return;
+        const m = enc.moradores;
+        const apto = m.bloco + '-' + m.apartamento;
+        itemParaBaixa = { id: enc.id, apto, nome: m.nome, qtd: enc.quantidade, whatsapp: m.whatsapp || '' };
         document.getElementById('modal-apto').textContent = apto;
-        document.getElementById('modal-nome').textContent = `${nome} · ${qtd} vol.`;
+        document.getElementById('modal-nome').textContent = m.nome + ' · ' + enc.quantidade + ' vol.';
         document.getElementById('modal-overlay').classList.add('aberto');
     }
 
@@ -1129,19 +1256,31 @@
 
     async function confirmarBaixa() {
         if (!itemParaBaixa) return;
+        const { id, nome, qtd, whatsapp } = itemParaBaixa;
+        const agora = new Date();
+        const dataHora = agora.toLocaleDateString('pt-BR') + ' \u00e0s ' + agora.toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' });
+
         const { error } = await supabaseClient
             .from('encomendas')
-            .update({
-                status: 'ENTREGUE',
-                baixado_pela: 'PORTARIA',
-                baixado_em: new Date().toISOString()
-            })
-            .eq('id', itemParaBaixa);
+            .update({ status: 'ENTREGUE', baixado_pela: 'PORTARIA', baixado_em: agora.toISOString() })
+            .eq('id', id);
 
         fecharModal();
         if (!error) {
-            toast('Baixa registrada pela portaria', 'green');
-            await carregarPendencias();
+            if (whatsapp) {
+                const msg = encodeURIComponent(
+                    '\ud83d\udce6 *CONDOM\u00cdNIO \u00c1GUA MARINHA*\n\n' +
+                    'Ol\u00e1 *' + nome + '*,\n\n' +
+                    'Informamos que sua encomenda foi baixada manualmente pela portaria em ' + dataHora + ', pois n\u00e3o identificamos a confirma\u00e7\u00e3o de retirada por sua parte.\n\n' +
+                    'Lembramos que a confirma\u00e7\u00e3o pelo link enviado no WhatsApp \u00e9 o \u00fanico meio de garantir o registro correto da entrega e protege tanto o morador quanto o condom\u00ednio em caso de diverg\u00eancias.\n\n' +
+                    'Caso n\u00e3o tenha retirado sua encomenda, entre em contato com a portaria imediatamente.\n\n' +
+                    '*Condom\u00ednio \u00c1gua Marinha*'
+                );
+                window.location.href = 'https://wa.me/' + whatsapp + '?text=' + msg;
+            } else {
+                toast('Baixa registrada.', 'green');
+                await carregarPendencias();
+            }
         } else {
             toast('Erro ao registrar baixa', '');
         }
