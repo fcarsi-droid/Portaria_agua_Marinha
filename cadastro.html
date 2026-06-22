@@ -528,6 +528,7 @@
     const supabaseUrl = 'https://esegzalccqvoypdpencs.supabase.co';
     const supabaseKey = 'sb_publishable_kuJIAQ5crRqZlNO5spRdJQ__G9QLrjI';
     const client = supabase.createClient(supabaseUrl, supabaseKey);
+    const SENHA_CADASTRO_HASH = '3926e2902c40a7e662dcbd99cb9cafa865ea07df37dda602617acbfd43ec2264';
 
     // Gera opções de apartamento
     const selApto = document.getElementById('apto');
@@ -537,8 +538,14 @@
     }
 
     // ── SENHA ──
-    function acessar() {
-        if (document.getElementById('input-senha').value === 'morador2026') {
+    async function hashText(value) {
+        const data = new TextEncoder().encode(value);
+        const digest = await crypto.subtle.digest('SHA-256', data);
+        return [...new Uint8Array(digest)].map(b => b.toString(16).padStart(2, '0')).join('');
+    }
+
+    async function acessar() {
+        if (await hashText(document.getElementById('input-senha').value) === SENHA_CADASTRO_HASH) {
             document.getElementById('div-senha').style.display = 'none';
             document.getElementById('div-form').style.display = 'block';
         } else {

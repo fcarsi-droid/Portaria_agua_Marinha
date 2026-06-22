@@ -493,13 +493,19 @@
     const SUPABASE_URL = 'https://esegzalccqvoypdpencs.supabase.co';
     const SUPABASE_KEY = 'sb_publishable_kuJIAQ5crRqZlNO5spRdJQ__G9QLrjI';
     const sb = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
-    const SENHA = 'AnalisedeEntregas2026';
+    const SENHA_HASH = '4010a3dae1803e72e699650de00515dbf85be8e077354fa611385013d5d77063';
 
     // Período: junho 2026 em diante
     const INICIO = '2026-06-01T00:00:00.000Z';
 
-    function fazerLogin() {
-        if (document.getElementById('senha-input').value === SENHA) {
+    async function hashText(value) {
+        const data = new TextEncoder().encode(value);
+        const digest = await crypto.subtle.digest('SHA-256', data);
+        return [...new Uint8Array(digest)].map(b => b.toString(16).padStart(2, '0')).join('');
+    }
+
+    async function fazerLogin() {
+        if (await hashText(document.getElementById('senha-input').value) === SENHA_HASH) {
             document.getElementById('tela-login').style.display = 'none';
             document.getElementById('tela-sistema').style.display = 'block';
             carregarDados();

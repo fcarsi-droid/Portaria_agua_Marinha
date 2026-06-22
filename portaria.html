@@ -965,7 +965,7 @@
     const SUPABASE_URL = 'https://esegzalccqvoypdpencs.supabase.co';
     const SUPABASE_KEY = 'sb_publishable_kuJIAQ5crRqZlNO5spRdJQ__G9QLrjI';
     const supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
-    const SENHA_CORRETA = "RDEAM2026#";
+    const SENHA_CORRETA_HASH = 'd7ab0f3bda3a6a0887440a525c3267b9cd9df6c7e00b848288b32adf4cbcd046';
 
     const urlParams = new URLSearchParams(window.location.search);
     const encomendaId = urlParams.get('id');
@@ -996,8 +996,14 @@
     }
 
     // ── LOGIN ──
-    function verificarSenha() {
-        if (document.getElementById('senha-input').value.trim() === SENHA_CORRETA) {
+    async function hashText(value) {
+        const data = new TextEncoder().encode(value);
+        const digest = await crypto.subtle.digest('SHA-256', data);
+        return [...new Uint8Array(digest)].map(b => b.toString(16).padStart(2, '0')).join('');
+    }
+
+    async function verificarSenha() {
+        if (await hashText(document.getElementById('senha-input').value.trim()) === SENHA_CORRETA_HASH) {
             localStorage.setItem('portaria_logado', 'true');
             location.reload();
         } else {
@@ -1074,7 +1080,7 @@
     async function exibirVisaoPorteiro() {
         const { data } = await supabaseClient
             .from('moradores')
-            .select('*')
+            .select('id, nome, bloco, apartamento, whatsapp')
             .order('bloco')
             .order('apartamento');
 
