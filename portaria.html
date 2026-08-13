@@ -767,6 +767,31 @@
         .toast.blue { background: var(--blue-dark); }
 
         .hidden { display: none !important; }
+
+        .toast-wpp {
+            position: fixed;
+            bottom: 20px;
+            left: 50%;
+            transform: translateX(-50%) translateY(200px);
+            background: #25d366;
+            color: white;
+            padding: 14px 20px;
+            border-radius: 14px;
+            font-size: 14px;
+            font-weight: 600;
+            z-index: 2000;
+            transition: transform 0.3s ease;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.2);
+            cursor: pointer;
+            white-space: nowrap;
+            font-family: 'Plus Jakarta Sans', sans-serif;
+        }
+
+        .toast-wpp.show { transform: translateX(-50%) translateY(0); }
+        .toast-wpp svg { width: 20px; height: 20px; flex-shrink: 0; }
     </style>
 </head>
 <body>
@@ -959,6 +984,13 @@
     </div>
 </div>
 
+<div class="toast-wpp" id="toast-wpp" onclick="enviarWppPortaria()">
+    <svg viewBox="0 0 24 24" fill="currentColor">
+        <path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347z"/>
+        <path d="M12 0C5.373 0 0 5.373 0 12c0 2.123.554 4.13 1.535 5.877L.057 23.925l6.213-1.453A11.953 11.953 0 0012 24c6.627 0 12-5.373 12-12S18.627 0 12 0zm0 21.818a9.818 9.818 0 01-5.001-1.368l-.36-.214-3.688.863.93-3.603-.234-.369A9.818 9.818 0 1112 21.818z"/>
+    </svg>
+    Enviar mensagem ao morador
+</div>
 <div class="toast" id="toast"></div>
 
 <script>
@@ -970,6 +1002,7 @@
     const urlParams = new URLSearchParams(window.location.search);
     const encomendaId = urlParams.get('id');
     let itemParaBaixa = null;
+    let wppLink = null;
 
     // ── HORA ──
     function atualizarHora() {
@@ -1267,6 +1300,8 @@
 
         fecharModal();
         if (!error) {
+            await carregarPendencias();
+            toast('Baixa registrada.', 'green');
             if (whatsapp) {
                 const msg = encodeURIComponent(
                     '\ud83d\udce6 *CONDOM\u00cdNIO \u00c1GUA MARINHA*\n\n' +
@@ -1276,19 +1311,21 @@
                     'Caso n\u00e3o tenha retirado sua encomenda, entre em contato com a portaria imediatamente.\n\n' +
                     '*Condom\u00ednio \u00c1gua Marinha*'
                 );
-                const link = document.createElement('a');
-                link.href = 'https://wa.me/' + whatsapp + '?text=' + msg;
-                link.target = '_blank';
-                link.rel = 'noopener';
-                document.body.appendChild(link);
-                link.click();
-                document.body.removeChild(link);
+                wppLink = 'https://wa.me/' + whatsapp + '?text=' + msg;
+                const el = document.getElementById('toast-wpp');
+                el.classList.add('show');
+                setTimeout(() => el.classList.remove('show'), 8000);
             }
-            toast('Baixa registrada. Mensagem enviada ao morador.', 'green');
-            await carregarPendencias();
         } else {
             toast('Erro ao registrar baixa', '');
         }
+    }
+
+    function enviarWppPortaria() {
+        if (!wppLink) return;
+        document.getElementById('toast-wpp').classList.remove('show');
+        window.location.href = wppLink;
+        wppLink = null;
     }
 
     // ── XLS ──
