@@ -1,3 +1,3 @@
 # Segurança do portal
 
-Consulte README.md. Portaria usa senha verificada no servidor; morador não cria conta e recebe link limitado a uma encomenda. As alterações novas de autenticação ainda não estão aplicadas em produção; exigem aprovação específica e corte coordenado.
+Consulte README.md. Acesso simples autorizado e preparado no servidor; a prévia usa senha da portaria e links restritos por encomenda. Moradores não criam contas. Configurar e validar a senha pelo administrador antes do corte do portal principal. As políticas anônimas antigas permanecem ativas até esse corte coordenado.

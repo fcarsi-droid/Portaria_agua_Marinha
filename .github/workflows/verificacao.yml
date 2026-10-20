@@ -38,9 +38,11 @@ jobs:
           psql -v ON_ERROR_STOP=1 -f tests/setup.sql
           psql -v ON_ERROR_STOP=1 -f supabase/migrations/20261020154639_portal_seguro_e_ciclo_moradores.sql
           psql -v ON_ERROR_STOP=1 -f supabase/migrations/20261020154817_corrigir_alias_portal.sql
-          psql -v ON_ERROR_STOP=1 -f supabase/changes/acesso-simples.sql
+          psql -v ON_ERROR_STOP=1 -f supabase/migrations/20261020173843_acesso_simples_portaria_links_seguros.sql
           psql -v ON_ERROR_STOP=1 -f tests/acesso-simples.sql
       - run: npm test
+      - name: Verificar função e prévia publicadas
+        run: node tests/previa-publicada.cjs
       - uses: actions/upload-artifact@v4
         if: always()
         with:

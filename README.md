@@ -17,19 +17,20 @@ O gateway Edge `portal-simples` verifica a sessão ou o token em cada operação
 Baixa simples não exige um campo novo nem inventa o nome de quem retirou. Devolução pede motivo. Engano sinaliza DIVERGÊNCIA em vez de entrega.
 
 ## Estado e publicação
-As duas migrações anteriores de estrutura/API já existem no banco. **A migração nova de acesso simples não foi aplicada:** a revisão automática rejeitou uma alteração persistente da autenticação em produção sem aprovação específica. Também não foi feito o corte do frontend nem o bloqueio das políticas anônimas antigas.
 
-A implementação nova está neste PR para teste e aprovação. A versão atualmente em `/nova-versao/` ainda corresponde ao fluxo anterior com e-mail e será substituída somente após a preparação do servidor. Não orientar porteiros ou moradores a criar contas nela.
+A migração de acesso simples foi autorizada pelo proprietário e aplicada em produção em 20/10/2026 (versão 20261020173843). A Edge Function `portal-simples` está publicada. A prévia em `/nova-versao/` foi atualizada com os formulários simples. O portal principal permanece na versão anterior até concluir a validação da senha.
 
-Sequência de publicação após aprovação:
-1. Aplicar a migração de acesso simples.
-2. Publicar a Edge Function e testar negativas de senha, sessão e token.
-3. Administrador cria/confirma seu único login e configura a senha conhecida da portaria em “Senha da portaria”. Não pedir a senha no chat.
-4. Testar o login da portaria e o recebimento em unidade autorizada.
-5. Publicar as páginas simples e aplicar o bloqueio do acesso direto anônimo no mesmo corte.
-6. Reenviar os avisos antigos ainda pendentes para gerar os novos links protegidos.
+Os dados existentes foram preservados: 104 moradores e 5.784 encomendas na conferência após a migração. O banco continua recebendo movimentação normal.
 
-Não foi apagado nenhum cadastro. As antigas políticas abertas permanecem até o corte; a segurança de produção ainda não está concluída.
+Ainda falta **uma configuração pelo administrador**, sem senha no chat:
+1. Em `/nova-versao/admin.html`, criar/confirmar a conta do e-mail escolhido pelo proprietário.
+2. Abrir “Senha da portaria” e definir a senha que será usada pela equipe. Porteiros não criam conta por e-mail.
+3. Testar essa senha em `/nova-versao/portaria.html`.
+4. Somente após a validação, publicar as páginas simples na raiz e aplicar o bloqueio das políticas anônimas antigas no mesmo corte.
+
+O retorno de confirmação e recuperação de senha do administrador aponta para `admin.html`, separado do formulário público dos moradores. Conferir em Authentication → URL Configuration os endereços `https://portalaguamarinha.com.br/nova-versao/admin.html` e a variante com www, além do endereço de produção `/admin.html`. Confirmação e recuperação dependem de entrega de e-mails do Supabase.
+
+Nenhum cadastro foi apagado. As políticas anônimas antigas permanecem ativas até o corte; não considerar a segurança da versão principal concluída antes dessa etapa. Após o corte, avisos antigos ainda pendentes devem ser reenviados para receber o link protegido.
 
 ## Testes
 O workflow usa PostgreSQL isolado, aplica o esquema e testa a migração nova; não usa dados de produção nem envia mensagens. Testa senha, hashes, rate limit, sessão, idempotência, isolamento por token, baixa sem campos novos, mudança e histórico.
