@@ -4,8 +4,8 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Sistema Água Marinha</title>
-    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-    <script src="https://cdn.sheetjs.com/xlsx-0.20.1/package/dist/xlsx.full.min.js"></script>
+    
+    
     <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
     <style>
         :root {
@@ -670,12 +670,13 @@
             justify-content: center;
             z-index: 500;
             opacity: 0;
+            visibility: hidden;
             pointer-events: none;
             transition: opacity 0.25s;
             backdrop-filter: blur(3px);
         }
 
-        .modal-overlay.aberto { opacity: 1; pointer-events: all; }
+        .modal-overlay.aberto { opacity: 1; visibility: visible; pointer-events: all; }
 
         .modal {
             background: white;
@@ -792,8 +793,8 @@
 
         .toast-wpp.show { transform: translateX(-50%) translateY(0); }
         .toast-wpp svg { width: 20px; height: 20px; flex-shrink: 0; }
-    </style>
-</head>
+    button:disabled{opacity:.55;cursor:wait}summary{cursor:pointer}.item-pendente{flex-wrap:wrap}[hidden]{display:none!important}#dados-operacao input{width:100%;padding:12px;border:1px solid #cbd5e1;border-radius:8px}.btn-xls{min-height:40px}</style>
+<meta name="referrer" content="no-referrer"><script src="simples.js" defer></script><script src="portaria-simples.js?v=mudanca-2" defer></script><meta name="portal-version" content="20261020-publicada"></head>
 <body>
 
 <!-- ══════ LOGIN ══════ -->
@@ -834,12 +835,12 @@
                 <p class="morador-aviso">Esta ação registra o recebimento dos volumes na portaria.</p>
 
                 <div class="btn-engano-wrap">
-                    <p class="btn-engano-label">Marque abaixo se a encomenda foi entregue por engano a você e já foi devolvida à portaria.</p>
+                    <p class="btn-engano-label">Marque abaixo se esta encomenda não pertence a você. A portaria fará a conferência.</p>
                     <button class="btn-engano" onclick="registrarEngano()">
                         <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" d="M12 9v3.75m-9.303 3.376c-.866 1.5.217 3.374 1.948 3.374h14.71c1.73 0 2.813-1.874 1.948-3.374L13.949 3.378c-.866-1.5-3.032-1.5-3.898 0L2.697 16.126zM12 15.75h.007v.008H12v-.008z"/>
                         </svg>
-                        Esta encomenda não era minha — já devolvi à portaria
+                        Esta encomenda não é minha
                     </button>
                 </div>
             </div>
@@ -857,7 +858,7 @@
                     <path stroke-linecap="round" stroke-linejoin="round" d="M12 9v3.75m-9.303 3.376c-.866 1.5.217 3.374 1.948 3.374h14.71c1.73 0 2.813-1.874 1.948-3.374L13.949 3.378c-.866-1.5-3.032-1.5-3.898 0L2.697 16.126zM12 15.75h.007v.008H12v-.008z"/>
                 </svg>
                 <h3>Registrado</h3>
-                <p>Anotamos que esta encomenda foi entregue a você por engano e já foi devolvida à portaria. A portaria irá verificar o destinatário correto.</p>
+                <p>A encomenda foi sinalizada para conferência. Ela não foi marcada como entregue.</p>
             </div>
         </div>
     </div>
@@ -884,6 +885,8 @@
     </div>
 
     <div class="page-content">
+
+<div class="card"><details id="cadastros-moradores"><summary class="card-header">Morador se mudou</summary><div class="card-body"><label for="busca-moradores">Localizar unidade</label><input type="search" id="busca-moradores" placeholder="Nome ou apartamento"><div id="lista-moradores"></div></div></details></div>
 
         <!-- Registro -->
         <div class="card">
@@ -930,12 +933,12 @@
                     <svg fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" d="M6 12L3.269 3.126A59.768 59.768 0 0121.485 12 59.77 59.77 0 013.27 20.876L5.999 12zm0 0h7.5"/>
                     </svg>
-                    Confirmar e Enviar Alerta
+                    Registrar e abrir WhatsApp
                 </button>
             </div>
         </div>
 
-        <!-- Pendências -->
+<div id="aviso-envio" class="card card-body" hidden></div><!-- Pendências -->
         <div class="card">
             <div class="card-header">
                 <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
@@ -950,11 +953,11 @@
                         <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" d="M3 16.5v2.25A2.25 2.25 0 005.25 21h13.5A2.25 2.25 0 0021 18.75V16.5M16.5 12L12 16.5m0 0L7.5 12m4.5 4.5V3"/>
                         </svg>
-                        XLS
+                        Relatório
                     </button>
                 </div>
             </div>
-            <div id="lista-pendentes">
+<div class="card-body"><label for="busca-pendencias">Buscar por nome ou apartamento</label><input id="busca-pendencias" type="search" placeholder="Ex.: Maria ou A-12" oninput="filtrarPendencias()"><p id="resumo-pendencias" role="status"></p><button class="btn-xls" onclick="carregarPendencias()">Atualizar lista</button></div><div id="lista-pendentes">
                 <div class="lista-vazia">
                     <svg fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" d="M20.25 7.5l-.625 10.632a2.25 2.25 0 01-2.247 2.118H6.622a2.25 2.25 0 01-2.247-2.118L3.75 7.5M10 11.25h4M3.375 7.5h17.25c.621 0 1.125-.504 1.125-1.125v-1.5c0-.621-.504-1.125-1.125-1.125H3.375c-.621 0-1.125.504-1.125 1.125v1.5c0 .621.504 1.125 1.125 1.125z"/>
@@ -964,10 +967,7 @@
             </div>
         </div>
 
-    </div>
-</div>
-
-<!-- Modal baixa -->
+</div></div><!-- Modal baixa -->
 <div class="modal-overlay" id="modal-overlay">
     <div class="modal">
         <div class="modal-handle"></div>
@@ -977,7 +977,7 @@
             <strong id="modal-apto"></strong>
             <span id="modal-nome"></span>
         </div>
-        <div class="modal-btns">
+        <div id="dados-operacao" class="field"></div><div class="modal-btns">
             <button class="btn-modal-ok" onclick="confirmarBaixa()">Confirmar Retirada</button>
             <button class="btn-modal-cancel" onclick="fecharModal()">Cancelar</button>
         </div>
@@ -993,392 +993,6 @@
 </div>
 <div class="toast" id="toast"></div>
 
-<script>
-    const SUPABASE_URL = 'https://esegzalccqvoypdpencs.supabase.co';
-    const SUPABASE_KEY = 'sb_publishable_kuJIAQ5crRqZlNO5spRdJQ__G9QLrjI';
-    const supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
-    let SENHA_CORRETA = null;
 
-    const urlParams = new URLSearchParams(window.location.search);
-    const encomendaId = urlParams.get('id');
-    let itemParaBaixa = null;
-    let wppLink = null;
-
-    // ── HORA ──
-    function atualizarHora() {
-        const agora = new Date();
-        document.getElementById('hora-atual').textContent =
-            agora.toLocaleString('pt-BR', { weekday: 'short', day: '2-digit', month: '2-digit', hour: '2-digit', minute: '2-digit' });
-    }
-
-    // ── INIT ──
-    async function inicializar() {
-        // Busca a senha do banco antes de qualquer coisa
-        const { data: cfg } = await supabaseClient
-            .from('configuracoes')
-            .select('valor')
-            .eq('chave', 'senha_portaria')
-            .single();
-        if (cfg) SENHA_CORRETA = cfg.valor;
-
-        if (encomendaId) {
-            document.getElementById('visao-morador').classList.remove('hidden');
-            await exibirVisaoMorador();
-        } else {
-            if (localStorage.getItem('portaria_logado') === 'true') {
-                document.getElementById('visao-porteiro').style.display = 'block';
-                await exibirVisaoPorteiro();
-                atualizarHora();
-                setInterval(atualizarHora, 30000);
-            } else {
-                document.getElementById('login-screen').classList.remove('hidden');
-            }
-        }
-    }
-
-    // ── LOGIN ──
-    function verificarSenha() {
-        if (SENHA_CORRETA && document.getElementById('senha-input').value.trim() === SENHA_CORRETA) {
-            localStorage.setItem('portaria_logado', 'true');
-            location.reload();
-        } else {
-            document.getElementById('login-erro').style.display = 'block';
-            document.getElementById('senha-input').value = '';
-        }
-    }
-
-    document.getElementById('senha-input').addEventListener('keydown', e => {
-        if (e.key === 'Enter') verificarSenha();
-    });
-
-    function logout() {
-        localStorage.removeItem('portaria_logado');
-        location.reload();
-    }
-
-    // ── MORADOR ──
-    async function exibirVisaoMorador() {
-        const { data } = await supabaseClient
-            .from('encomendas')
-            .select('quantidade, status, moradores(nome, bloco, apartamento)')
-            .eq('id', encomendaId)
-            .single();
-
-        if (data) {
-            if (data.status === 'ENTREGUE') {
-                mostrarSucesso();
-            } else {
-                document.getElementById('detalhe-encomenda').innerHTML =
-                    `Prezado(a) <b>${data.moradores.nome}</b>, confirme a retirada de <b>${data.quantidade} volume(s)</b>.<br><br>Bloco ${data.moradores.bloco} · Apto ${data.moradores.apartamento}`;
-            }
-        } else {
-            document.getElementById('detalhe-encomenda').textContent = 'Registro não encontrado.';
-        }
-    }
-
-    async function confirmarPeloMorador() {
-        const { error } = await supabaseClient
-            .from('encomendas')
-            .update({ status: 'ENTREGUE', baixado_pela: 'MORADOR', baixado_em: new Date().toISOString() })
-            .eq('id', encomendaId);
-        if (!error) mostrarSucesso();
-    }
-
-    async function registrarEngano() {
-        const { error, data: encData } = await supabaseClient
-            .from('encomendas')
-            .update({ status: 'ENTREGUE', baixado_pela: 'ENGANO', baixado_em: new Date().toISOString() })
-            .eq('id', encomendaId)
-            .select('moradores(nome, bloco, apartamento)')
-            .single();
-
-        if (!error) {
-            const m = encData.moradores;
-            const msg = encodeURIComponent(
-                '\ud83d\udce6 *CONDOMÍNIO ÁGUA MARINHA*\n\n' +
-                '\u26a0\ufe0f A encomenda registrada para *' + m.nome + '* \u2014 Bloco ' + m.bloco + ', Apto ' + m.apartamento + ' \u2014 foi devolvida pelo morador, pois foi entregue por engano.\n\n' +
-                'Por favor, verifique o destinatário correto e crie um novo registro.\n\n' +
-                '*Sistema Água Marinha*'
-            );
-            window.open('https://wa.me/5519992035326?text=' + msg, '_blank');
-            document.getElementById('conteudo-pendente').classList.add('hidden');
-            document.getElementById('conteudo-engano').classList.remove('hidden');
-        }
-    }
-
-    function mostrarSucesso() {
-        document.getElementById('conteudo-pendente').classList.add('hidden');
-        document.getElementById('conteudo-sucesso').classList.remove('hidden');
-    }
-
-    // ── PORTEIRO ──
-    async function exibirVisaoPorteiro() {
-        const { data } = await supabaseClient
-            .from('moradores')
-            .select('*')
-            .order('bloco')
-            .order('apartamento');
-
-        window.moradoresGlobal = data;
-
-        const blocos = [...new Set(data.map(m => m.bloco))].sort();
-        const sel = document.getElementById('bloco');
-        sel.innerHTML = '<option value="">–</option>';
-        blocos.forEach(b => sel.innerHTML += `<option value="${b}">Bloco ${b}</option>`);
-
-        await carregarPendencias();
-    }
-
-    function filtrarApartamentos() {
-        const bloco = document.getElementById('bloco').value;
-        const sel = document.getElementById('apartamento');
-        sel.innerHTML = '<option value="">Selecione</option>';
-        document.getElementById('morador-sel').classList.remove('ativo');
-        if (!bloco) return;
-        window.moradoresGlobal
-            .filter(m => m.bloco === bloco)
-            .forEach(m => {
-                sel.innerHTML += `<option value="${m.id}">${m.apartamento} – ${m.nome}</option>`;
-            });
-    }
-
-    function mostrarMorador() {
-        const id = document.getElementById('apartamento').value;
-        const el = document.getElementById('morador-sel');
-        if (!id) { el.classList.remove('ativo'); return; }
-        const m = window.moradoresGlobal.find(x => x.id == id);
-        if (!m) return;
-        const iniciais = m.nome.trim().split(' ').slice(0,2).map(p => p[0]).join('');
-        document.getElementById('morador-av').textContent = iniciais;
-        document.getElementById('morador-sel-nome').textContent = m.nome;
-        document.getElementById('morador-sel-sub').textContent =
-            `Bloco ${m.bloco} · Apto ${m.apartamento}` + (m.whatsapp ? ' · WhatsApp cadastrado' : ' · Sem WhatsApp');
-        el.classList.add('ativo');
-    }
-
-    function ajustarVol(d) {
-        const el = document.getElementById('qtd');
-        el.value = Math.max(1, Math.min(99, parseInt(el.value) + d));
-    }
-
-    async function registrar() {
-        const id = document.getElementById('apartamento').value;
-        const qtd = document.getElementById('qtd').value;
-        if (!id) { toast('Selecione o morador', ''); return; }
-
-        const { data, error } = await supabaseClient
-            .from('encomendas')
-            .insert([{ morador_id: id, quantidade: qtd }])
-            .select();
-
-        if (!error) {
-            const m = window.moradoresGlobal.find(x => x.id == id);
-            const link = `${window.location.origin}${window.location.pathname}?id=${data[0].id}`;
-            const msg = encodeURIComponent(`📦 *CONDOMÍNIO ÁGUA MARINHA*\n\nOlá *${m.nome}*,\nInformamos que chegou *${qtd} volume(s)* para sua unidade.\n\nRetire na portaria e confirme no link:\n👉 ${link}`);
-            window.open(`https://wa.me/${m.whatsapp}?text=${msg}`, '_blank');
-            toast('Encomenda registrada! Alerta enviado.', 'green');
-            // reset form
-            document.getElementById('bloco').value = '';
-            document.getElementById('apartamento').innerHTML = '<option value="">Selecione o bloco</option>';
-            document.getElementById('qtd').value = 1;
-            document.getElementById('morador-sel').classList.remove('ativo');
-            await carregarPendencias();
-        } else {
-            toast('Erro ao registrar. Tente novamente.', '');
-        }
-    }
-
-    // ── LISTA ──
-    async function carregarPendencias() {
-        const { data } = await supabaseClient
-            .from('encomendas')
-            .select('id, quantidade, criado_em, moradores(nome, bloco, apartamento, whatsapp)')
-            .eq('status', 'DISPONÍVEL')
-            .order('criado_em', { ascending: true });
-
-        window.pendenciasGlobal = data;
-        document.getElementById('badge-total').textContent = data.length;
-        renderLista(data);
-    }
-
-    function renderLista(data) {
-        const cont = document.getElementById('lista-pendentes');
-
-        if (!data || data.length === 0) {
-            cont.innerHTML = `
-                <div class="lista-vazia">
-                    <svg fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" d="M9 12.75L11.25 15 15 9.75M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
-                    </svg>
-                    <p>Nenhuma encomenda aguardando retirada</p>
-                </div>`;
-            return;
-        }
-
-        // Agrupar por data
-        const hoje = new Date();
-        const grupos = {};
-
-        data.forEach(item => {
-            const d = new Date(item.criado_em);
-            const chave = d.toLocaleDateString('pt-BR');
-            if (!grupos[chave]) grupos[chave] = { label: '', items: [], data: d };
-            grupos[chave].items.push(item);
-        });
-
-        // Labels legíveis
-        Object.keys(grupos).forEach(chave => {
-            const g = grupos[chave];
-            const diff = Math.floor((hoje - g.data) / 86400000);
-            if (diff === 0) g.label = 'Hoje';
-            else if (diff === 1) g.label = 'Ontem';
-            else g.label = `${chave} · ${diff} dias atrás`;
-            g.diasAtraso = diff;
-        });
-
-        let html = '';
-        Object.keys(grupos).sort((a,b) => grupos[b].data - grupos[a].data).forEach(chave => {
-            const g = grupos[chave];
-            const atrasado = g.diasAtraso >= 3;
-            html += `<div class="dia-grupo">
-                <div class="dia-label ${atrasado ? 'atrasado' : ''}">${g.label}</div>`;
-
-            g.items.forEach(item => {
-                const m = item.moradores;
-                const apto = `${m.bloco}-${m.apartamento}`;
-                const iniciais = m.nome.trim().split(' ').slice(0,2).map(p => p[0]).join('');
-                const avClass = g.diasAtraso >= 5 ? 'muito-atrasado' : g.diasAtraso >= 3 ? 'atrasado' : '';
-                const hora = new Date(item.criado_em).toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' });
-
-                html += `
-                    <div class="item-pendente">
-                        <div class="item-av ${avClass}">${iniciais}</div>
-                        <div class="item-info">
-                            <div class="item-apto">${apto}</div>
-                            <div class="item-nome">${m.nome}</div>
-                            <div class="item-meta">
-                                <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
-                                    <path stroke-linecap="round" stroke-linejoin="round" d="M12 6v6h4.5m4.5 0a9 9 0 11-18 0 9 9 0 0118 0z"/>
-                                </svg>
-                                ${hora}
-                            </div>
-                        </div>
-                        <span class="vol-badge">${item.quantidade} vol.</span>
-                        <button class="btn-baixa" onclick="abrirModalById('${item.id}')">BAIXA</button>
-                    </div>`;
-            });
-
-            html += '</div>';
-        });
-
-        cont.innerHTML = html;
-    }
-
-    // ── MODAL BAIXA ──
-    function abrirModalById(id) {
-        const enc = window.pendenciasGlobal.find(e => String(e.id) === String(id));
-        if (!enc) return;
-        const m = enc.moradores;
-        const apto = m.bloco + '-' + m.apartamento;
-        itemParaBaixa = { id: enc.id, apto, nome: m.nome, qtd: enc.quantidade, whatsapp: m.whatsapp || '' };
-        document.getElementById('modal-apto').textContent = apto;
-        document.getElementById('modal-nome').textContent = m.nome + ' · ' + enc.quantidade + ' vol.';
-        document.getElementById('modal-overlay').classList.add('aberto');
-    }
-
-    function fecharModal() {
-        document.getElementById('modal-overlay').classList.remove('aberto');
-        itemParaBaixa = null;
-    }
-
-    document.getElementById('modal-overlay').addEventListener('click', function(e) {
-        if (e.target === this) fecharModal();
-    });
-
-    async function confirmarBaixa() {
-        if (!itemParaBaixa) return;
-        const { id, nome, qtd, whatsapp } = itemParaBaixa;
-        const agora = new Date();
-        const dataHora = agora.toLocaleDateString('pt-BR') + ' \u00e0s ' + agora.toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' });
-
-        const { error } = await supabaseClient
-            .from('encomendas')
-            .update({ status: 'ENTREGUE', baixado_pela: 'PORTARIA', baixado_em: agora.toISOString() })
-            .eq('id', id);
-
-        fecharModal();
-        if (!error) {
-            await carregarPendencias();
-            toast('Baixa registrada.', 'green');
-            if (whatsapp) {
-                const msg = encodeURIComponent(
-                    '\ud83d\udce6 *CONDOM\u00cdNIO \u00c1GUA MARINHA*\n\n' +
-                    'Ol\u00e1 *' + nome + '*,\n\n' +
-                    'Informamos que sua encomenda foi baixada manualmente pela portaria em ' + dataHora + ', pois n\u00e3o identificamos a confirma\u00e7\u00e3o de retirada por sua parte.\n\n' +
-                    'Lembramos que a confirma\u00e7\u00e3o pelo link enviado no WhatsApp \u00e9 o \u00fanico meio de garantir o registro correto da entrega e protege tanto o morador quanto o condom\u00ednio em caso de diverg\u00eancias.\n\n' +
-                    'Caso n\u00e3o tenha retirado sua encomenda, entre em contato com a portaria imediatamente.\n\n' +
-                    '*Condom\u00ednio \u00c1gua Marinha*'
-                );
-                wppLink = 'https://wa.me/' + whatsapp + '?text=' + msg;
-                const el = document.getElementById('toast-wpp');
-                el.classList.add('show');
-                setTimeout(() => el.classList.remove('show'), 8000);
-            }
-        } else {
-            toast('Erro ao registrar baixa', '');
-        }
-    }
-
-    function enviarWppPortaria() {
-        if (!wppLink) return;
-        document.getElementById('toast-wpp').classList.remove('show');
-        window.location.href = wppLink;
-        wppLink = null;
-    }
-
-    // ── XLS ──
-    async function exportarXLS() {
-        toast('Gerando relatório...', 'blue');
-        const { data } = await supabaseClient
-            .from('encomendas')
-            .select('status, quantidade, criado_em, baixado_pela, baixado_em, moradores(nome, bloco, apartamento)')
-            .order('criado_em', { ascending: false });
-
-        const rows = data.map(r => ({
-            'Data Entrada': new Date(r.criado_em).toLocaleString('pt-BR'),
-            'Bloco': r.moradores.bloco,
-            'Apto': r.moradores.apartamento,
-            'Nome': r.moradores.nome,
-            'Volumes': r.quantidade,
-            'Status': r.status,
-            'Retirado por': r.baixado_pela || '–',
-            'Data Retirada': r.baixado_em ? new Date(r.baixado_em).toLocaleString('pt-BR') : '–'
-        }));
-
-        const ws = XLSX.utils.json_to_sheet(rows);
-        const wb = XLSX.utils.book_new();
-        XLSX.utils.book_append_sheet(wb, ws, 'Encomendas');
-
-        // Largura das colunas
-        ws['!cols'] = [
-            { wch: 18 }, { wch: 8 }, { wch: 8 }, { wch: 30 },
-            { wch: 8 }, { wch: 12 }, { wch: 12 }, { wch: 18 }
-        ];
-
-        const data_str = new Date().toLocaleDateString('pt-BR').replace(/\//g, '-');
-        XLSX.writeFile(wb, `relatorio_agua_marinha_${data_str}.xlsx`);
-        setTimeout(() => toast('Relatório exportado!', 'green'), 400);
-    }
-
-    // ── TOAST ──
-    function toast(msg, tipo) {
-        const el = document.getElementById('toast');
-        el.textContent = msg;
-        el.className = `toast show ${tipo}`;
-        setTimeout(() => el.className = 'toast', 3000);
-    }
-
-    inicializar();
-</script>
 </body>
 </html>
