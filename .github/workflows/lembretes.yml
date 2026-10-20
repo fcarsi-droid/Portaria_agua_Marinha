@@ -1,0 +1,26 @@
+name: Verificar lembretes por morador
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'lembretes.js'
+      - 'portaria-simples.js'
+      - 'app.js'
+      - 'tests/lembretes.cjs'
+      - '.github/workflows/lembretes.yml'
+permissions:
+  contents: read
+jobs:
+  lembretes:
+    runs-on: ubuntu-latest
+    timeout-minutes: 7
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - run: npm install --prefix /tmp/portal-lembretes --ignore-scripts --no-audit --no-fund playwright@1.56.1
+      - run: /tmp/portal-lembretes/node_modules/.bin/playwright install --with-deps chromium
+      - run: node tests/lembretes.cjs
+        env:
+          NODE_PATH: /tmp/portal-lembretes/node_modules
