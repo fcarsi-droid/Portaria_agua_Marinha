@@ -7,6 +7,9 @@ on:
       - 'portaria-simples.js'
       - 'app.js'
       - 'tests/lembretes.cjs'
+      - 'tests/mobile.cjs'
+      - 'mobile.css'
+      - 'portaria.html'
       - '.github/workflows/lembretes.yml'
 permissions:
   contents: read
@@ -22,5 +25,8 @@ jobs:
       - run: npm install --prefix /tmp/portal-lembretes --ignore-scripts --no-audit --no-fund playwright@1.56.1
       - run: /tmp/portal-lembretes/node_modules/.bin/playwright install --with-deps chromium
       - run: node tests/lembretes.cjs
+        env:
+          NODE_PATH: /tmp/portal-lembretes/node_modules
+      - run: node tests/mobile.cjs
         env:
           NODE_PATH: /tmp/portal-lembretes/node_modules

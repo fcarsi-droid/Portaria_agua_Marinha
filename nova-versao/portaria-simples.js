@@ -96,27 +96,22 @@ async function exportarXLS(){try{const rows=[];for(let offset=0;;offset+=500){co
 
             g.items.forEach(item => {
                 const m = item.moradores || {nome:'Cadastro indisponível',bloco:'?',apartamento:'?'};
-                const apto = `${m.bloco}-${m.apartamento}`;
-                const iniciais = m.nome.trim().split(' ').slice(0,2).map(p => p[0]).join('');
-                const avClass = g.diasAtraso >= 5 ? 'muito-atrasado' : g.diasAtraso >= 3 ? 'atrasado' : '';
-                const hora = new Date(item.criado_em).toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' });
-
+                const dataEntrada=new Date(item.criado_em).toLocaleString('pt-BR',{day:'2-digit',month:'2-digit',year:'numeric',hour:'2-digit',minute:'2-digit'});
                 html += `
-                    <div class="item-pendente">
-                        <div class="item-av ${avClass}">${Portal.escape(iniciais)}</div>
-                        <div class="item-info">
-                            <div class="item-apto">${Portal.escape(apto)}</div>
-                            <div class="item-nome">${Portal.escape(m.nome)}</div>
-                            <div class="item-meta">
-                                <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
-                                    <path stroke-linecap="round" stroke-linejoin="round" d="M12 6v6h4.5m4.5 0a9 9 0 11-18 0 9 9 0 0118 0z"/>
-                                </svg>
-                                ${hora}
-                            </div>
+                    <article class="cartao-encomenda">
+                        <div class="encomenda-topo">
+                            <strong class="encomenda-unidade">Bloco ${Portal.escape(m.bloco)} · Apto ${Portal.escape(m.apartamento)}</strong>
+                            <span class="encomenda-volumes">${Portal.escape(item.quantidade)} volume(s)</span>
                         </div>
-                        <span class="vol-badge">${item.quantidade} vol.</span>${item.status==='DIVERGÊNCIA'?'<strong>Conferir destinatário</strong>':''}
-                        <button class="btn-baixa" data-baixa="${Portal.escape(item.id)}">Retirada</button><button class="btn-xls" data-aviso="${Portal.escape(item.id)}">Avisar</button><button class="btn-xls" data-devolver="${Portal.escape(item.id)}">Devolver</button>
-                    </div>`;
+                        <div class="encomenda-nome">${Portal.escape(m.nome)}</div>
+                        <div class="encomenda-data">Recebida em ${Portal.escape(dataEntrada)} · #${Portal.escape(item.id)}</div>
+                        ${item.status==='DIVERGÊNCIA'?'<strong class="encomenda-alerta">Conferir destinatário</strong>':''}
+                        <div class="encomenda-acoes">
+                            <button class="btn-baixa" data-baixa="${Portal.escape(item.id)}">Retirada</button>
+                            <button class="btn-xls" data-aviso="${Portal.escape(item.id)}">Avisar</button>
+                            <button class="btn-xls" data-devolver="${Portal.escape(item.id)}">Devolver</button>
+                        </div>
+                    </article>`;
             });
 
             html += '</div>';
@@ -128,5 +123,18 @@ async function exportarXLS(){try{const rows=[];for(let offset=0;;offset+=500){co
         cont.querySelectorAll('[data-devolver]').forEach(btn=>btn.onclick=()=>devolver(btn.dataset.devolver));
     }
 
+
+
+function abrirAcaoPortaria(tipo){
+ const mudanca=document.getElementById('cadastros-moradores'),lembrete=document.getElementById('painel-lembrete');
+ const painel=tipo==='mudanca'?mudanca:lembrete;const abrir=!painel.open;
+ mudanca.open=false;lembrete.open=false;painel.open=abrir;
+ document.getElementById('atalho-mudanca').setAttribute('aria-expanded',String(mudanca.open));
+ document.getElementById('atalho-lembrete').setAttribute('aria-expanded',String(lembrete.open));
+ if(abrir){painel.scrollIntoView({block:'nearest',behavior:'smooth'});(tipo==='mudanca'?document.getElementById('busca-moradores'):painel.querySelector('select'))?.focus({preventScroll:true})}
+}
+document.getElementById('atalho-mudanca').addEventListener('click',()=>abrirAcaoPortaria('mudanca'));
+document.getElementById('atalho-lembrete').addEventListener('click',()=>abrirAcaoPortaria('lembrete'));
+for(const [id,botao] of [['cadastros-moradores','atalho-mudanca'],['painel-lembrete','atalho-lembrete']])document.getElementById(id).addEventListener('toggle',e=>document.getElementById(botao).setAttribute('aria-expanded',String(e.target.open)));
 
 inicializar().catch(e=>mostrarLogin(e.message));
