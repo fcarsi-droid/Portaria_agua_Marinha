@@ -143,7 +143,7 @@ begin
       tentativas=case when portal_private.limites_portal.inicio<now()-interval '15 minutes' then 1 else portal_private.limites_portal.tentativas+1 end,
       inicio=case when portal_private.limites_portal.inicio<now()-interval '15 minutes' then now() else portal_private.limites_portal.inicio end
       returning tentativas into rate;
-   if rate>case when p_acao='entrar' then 10 when p_acao='solicitar_cadastro' then 20 else 100 end then
+   if rate>(case when p_acao='entrar' then 10 when p_acao='solicitar_cadastro' then 20 else 100 end) then
       return jsonb_build_object('erro','Muitas tentativas. Aguarde alguns minutos.','codigo',429);
    end if;
  end if;
