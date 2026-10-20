@@ -21,9 +21,9 @@ As migrações `20261020154639` e `20261020154817` foram aplicadas ao projeto co
 
 ## Antes de publicar
 
-1. Em Supabase → Authentication → URL Configuration, configurar Site URL `https://www.portalaguamarinha.com.br` e permitir os redirects `https://www.portalaguamarinha.com.br/cadastro.html` e, se usado, o domínio sem www.
+1. Em Supabase → Authentication → URL Configuration, configurar Site URL `https://portalaguamarinha.com.br` (domínio canônico observado) e permitir os redirects `https://portalaguamarinha.com.br/cadastro.html` e `https://portalaguamarinha.com.br/nova-versao/cadastro.html`; incluir também as duas variantes com `www` enquanto forem usadas.
 2. Em Authentication → Email, verificar envio de confirmação e recuperação. O serviço de e-mail padrão do Supabase pode aceitar somente endereços autorizados da equipe e possui limites baixos. Configurar SMTP próprio antes de liberar cadastro para todos os moradores. Não desabilitar confirmação para contornar isso.
-3. Disponibilizar a versão de teste e criar/confirmar a conta inicial. O e-mail foi escolhido pelo proprietário e está em tabela privada; não há senha inicial no código.
+3. A versão de validação foi disponibilizada em `/nova-versao/`, sem substituir as páginas atuais. Usar os redirects descritos no item 1. A versão de validação usa o banco real; operações são reais, não uma demonstração com dados fictícios. Criar/confirmar a conta inicial nessa versão. O e-mail foi escolhido pelo proprietário e está em tabela privada; não há senha inicial no código.
 4. Confirmar login do administrador, testar portaria e aprovação com uma unidade autorizada para homologação.
 5. Publicar os arquivos de aplicação juntos e aplicar a migração de corte. Verificar que leituras REST anônimas de moradores/encomendas falham, que login funciona e que registros antigos foram preservados.
 6. Cada membro da portaria cria e confirma a própria conta. Administrador libera seu e-mail na aba Equipe.
@@ -44,7 +44,7 @@ A retirada/devolução/mudança registra autor e horário. Não se apagam perman
 
 Interface: `npm ci`, `npx playwright install chromium`, `npm run check`, `npm test`. Testes usam banco simulado, sem acesso aos dados de produção. Incluem telas desktop/mobile, filtro, WhatsApp, dupla submissão, retirada, mudança bloqueada e liberada, morador, divergência e escape de HTML. O workflow do GitHub executa a verificação e guarda capturas de tela.
 
-O ambiente local restringiu sockets do Chromium; os testes de navegador devem passar no CI antes do corte. Validação de sintaxe e testes reais transacionais do banco passaram.
+O ambiente local restringiu sockets do Chromium; os testes de navegador passaram no GitHub Actions, em computador e celular. Validação de sintaxe e testes reais transacionais do banco também passaram. A execução inicial está em https://github.com/fcarsi-droid/Portaria_agua_Marinha/actions/runs/39452765495.
 
 ## Limites conhecidos
 
