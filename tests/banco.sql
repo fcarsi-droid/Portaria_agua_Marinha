@@ -1,0 +1,65 @@
+-- Testes com usuários fictícios, sem envio de e-mail. Toda a transação é revertida.
+begin;
+do $$
+declare
+ admin_id uuid:=gen_random_uuid(); resident_id uuid:=gen_random_uuid(); next_id uuid:=gen_random_uuid(); stranger_id uuid:=gen_random_uuid();
+ session_id uuid:=gen_random_uuid(); resident_session uuid:=gen_random_uuid(); next_session uuid:=gen_random_uuid(); stranger_session uuid:=gen_random_uuid();
+ mid int; new_mid int; eid int; sid bigint; resposta jsonb; blocked boolean; apartamento_teste text; op uuid:=gen_random_uuid();
+begin
+ insert into auth.users(id,email,email_confirmed_at) values(admin_id,admin_id::text||'@example.invalid',now()),(resident_id,resident_id::text||'@example.invalid',now()),(next_id,next_id::text||'@example.invalid',now()),(stranger_id,stranger_id::text||'@example.invalid',now());
+ insert into auth.sessions(id,user_id,created_at) values(session_id,admin_id,now()),(resident_session,resident_id,now()),(next_session,next_id,now()),(stranger_session,stranger_id,now());
+ insert into portal_private.equipe(user_id,papel) values(admin_id,'admin');
+ select lpad(i::text,2,'0') into apartamento_teste from generate_series(1,74) i where not exists(select 1 from public.moradores where bloco='A' and apartamento=lpad(i::text,2,'0') and ativo) limit 1;
+ if apartamento_teste is null then raise exception 'Sem unidade livre para teste.'; end if;
+ insert into public.moradores(bloco,apartamento,nome,whatsapp,user_id) values('A',apartamento_teste,'MORADOR FICTICIO','5519999991234',resident_id) returning id into mid;
+ perform set_config('request.jwt.claims',jsonb_build_object('sub',admin_id,'role','authenticated','session_id',session_id)::text,true);
+ resposta:=public.portal('registrar',jsonb_build_object('morador_id',mid,'quantidade',2,'operacao_id',op)); eid:=(resposta->>'id')::int;
+ resposta:=public.portal('registrar',jsonb_build_object('morador_id',mid,'quantidade',2,'operacao_id',op));
+ if (resposta->>'id')::int<>eid then raise exception 'Falha na idempotência.'; end if;
+ blocked:=false;begin perform public.portal('registrar',jsonb_build_object('morador_id',mid,'quantidade',0,'operacao_id',gen_random_uuid()));exception when others then blocked:=true;end;
+ if not blocked then raise exception 'Aceitou quantidade inválida.';end if;
+ blocked:=false;begin perform public.portal('mudar_morador',jsonb_build_object('id',mid,'confirmacao','A-'||apartamento_teste));exception when others then blocked:=true;end;
+ if not blocked then raise exception 'Liberou unidade com encomenda pendente.';end if;
+ perform set_config('request.jwt.claims',jsonb_build_object('sub',stranger_id,'role','authenticated','session_id',stranger_session)::text,true);
+ blocked:=false;begin perform public.portal('confirmar_retirada',jsonb_build_object('id',eid));exception when insufficient_privilege then blocked:=true;end;
+ if not blocked then raise exception 'Outro usuário conseguiu dar baixa.';end if;
+ blocked:=false;begin perform public.portal('moradores');exception when insufficient_privilege then blocked:=true;end;
+ if not blocked then raise exception 'Morador conseguiu listar o condomínio.';end if;
+ perform set_config('request.jwt.claims',jsonb_build_object('sub',resident_id,'role','authenticated','session_id',resident_session)::text,true);
+ perform public.portal('informar_engano',jsonb_build_object('id',eid));
+ if not exists(select 1 from public.encomendas where id=eid and status='DIVERGÊNCIA' and baixado_em is null) then raise exception 'Engano marcado como entregue.';end if;
+ perform set_config('request.jwt.claims',jsonb_build_object('sub',admin_id,'role','authenticated','session_id',session_id)::text,true);
+ perform public.portal('resolver_divergencia',jsonb_build_object('id',eid));
+ perform public.portal('devolver',jsonb_build_object('id',eid,'observacao','Devolução fictícia para teste'));
+ blocked:=false;begin perform public.portal('mudar_morador',jsonb_build_object('id',mid,'confirmacao','ERRADA'));exception when others then blocked:=true;end;
+ if not blocked then raise exception 'Mudança sem confirmação correta.';end if;
+ perform public.portal('mudar_morador',jsonb_build_object('id',mid,'confirmacao','A-'||apartamento_teste));
+ if exists(select 1 from public.moradores where id=mid and ativo) then raise exception 'Morador permaneceu ativo.';end if;
+ perform set_config('request.jwt.claims',jsonb_build_object('sub',resident_id,'role','authenticated','session_id',resident_session)::text,true);
+ if jsonb_array_length(public.portal('minhas_encomendas'))<>0 then raise exception 'Antigo morador manteve acesso à unidade.';end if;
+ blocked:=false;begin perform public.portal('confirmar_retirada',jsonb_build_object('id',eid));exception when insufficient_privilege then blocked:=true;end;
+ if not blocked then raise exception 'Antigo morador alterou encomenda.';end if;
+ perform set_config('request.jwt.claims',jsonb_build_object('sub',next_id,'role','authenticated','session_id',next_session)::text,true);
+ perform public.portal('solicitar_cadastro',jsonb_build_object('bloco','A','apartamento',apartamento_teste,'nome','NOVO FICTICIO','whatsapp','55999991234'));
+ select id into sid from portal_private.solicitacoes where user_id=next_id and status='PENDENTE';
+ if not exists(select 1 from portal_private.solicitacoes where id=sid and whatsapp='5555999991234') then raise exception 'DDD 55 normalizado incorretamente.';end if;
+ perform set_config('request.jwt.claims',jsonb_build_object('sub',admin_id,'role','authenticated','session_id',session_id)::text,true);
+ perform public.portal('aprovar',jsonb_build_object('id',sid));
+ select id into new_mid from public.moradores where user_id=next_id and ativo;
+ if new_mid=mid or new_mid is null then raise exception 'Novo morador reutilizou cadastro antigo.';end if;
+ if not exists(select 1 from public.encomendas where id=eid and morador_id=mid) then raise exception 'Histórico foi transferido.';end if;
+ perform set_config('request.jwt.claims',jsonb_build_object('sub',next_id,'role','authenticated','session_id',next_session)::text,true);
+ if jsonb_array_length(public.portal('minhas_encomendas'))<>0 then raise exception 'Novo morador herdou encomenda antiga.';end if;
+ -- Revogação imediata da autorização apesar de JWT ainda existente.
+ perform set_config('request.jwt.claims',jsonb_build_object('sub',admin_id,'role','authenticated','session_id',session_id)::text,true);
+ update portal_private.equipe set ativo=false where user_id=admin_id;
+ blocked:=false;begin perform public.portal('moradores');exception when insufficient_privilege then blocked:=true;end;
+ if not blocked then raise exception 'Equipe desativada manteve autorização.';end if;
+ delete from auth.sessions where id=next_session;
+ perform set_config('request.jwt.claims',jsonb_build_object('sub',next_id,'role','authenticated','session_id',next_session)::text,true);
+ blocked:=false;begin perform public.portal('perfil');exception when insufficient_privilege then blocked:=true;end;
+ if not blocked then raise exception 'Sessão revogada foi aceita.';end if;
+ if has_function_privilege('anon','public.portal(text,jsonb)','execute') then raise exception 'RPC aberta ao anônimo.';end if;
+end $$;
+select 'OK: idempotência, validação, isolamento, divergência, saída bloqueada com pendência, confirmação, saída, revogação de acesso, novo cadastro e histórico preservado; transação será revertida' as resultado;
+rollback;
