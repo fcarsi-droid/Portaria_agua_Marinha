@@ -12,3 +12,7 @@ Versão simples publicada no endereço principal https://portalaguamarinha.com.b
 A versão publicada copia somente os arquivos validados em nova-versao; não incorpora a proposta de suspensão da branch de melhorias. Histórico anterior: commit 9cb7b58de5c3fb1324d7940d7383c664034a22b8. Nenhuma senha foi alterada pela publicação.
 
 O teste tests/publicacao.cjs verifica o endereço principal e o gateway sem criar dados nem enviar mensagens.
+
+O corte do acesso direto antigo foi concluído pela migração 20261020203049_bloquear_acesso_direto_portal_antigo. As tabelas moradores e encomendas permanecem com RLS e sem privilégios diretos para anon/authenticated; as funções autenticadas da portaria e administração foram verificadas após o corte. Nenhum registro foi removido. A prévia em /nova-versao/ permanece compatível.
+
+Validação da publicação: https://github.com/fcarsi-droid/Portaria_agua_Marinha/actions/runs/39492330743. Acesso direto negado e consultas de portaria/administração validadas em transação revertida no banco.
