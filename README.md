@@ -8,6 +8,8 @@
 - Administração: somente o administrador usa e-mail. Configura a senha da portaria uma vez (pode reutilizar a senha conhecida se atender aos 8 caracteres mínimos).
 
 ## Suspensão de avisos por pendências
+Implementação preparada e validada em banco isolado e navegador. Ainda não aplicada ao banco de produção: revisão automática exigiu autorização explícita do proprietário para alterar as funções e bloquear avisos de moradores reais. A prévia publicada ainda não aplica a suspensão.
+
 A partir de 10 registros de recebimento DISPONÍVEL do mesmo morador, cada um com mais de 10 dias corridos (240 horas), o servidor deixa de emitir novos links de aviso. Conta recebimentos, não a soma de volumes. ENTREGUE, DEVOLVIDA e DIVERGÊNCIA não entram na contagem; divergência depende de conferência da portaria.
 
 O registro de novas encomendas e todas as baixas continuam funcionando. Avisos voltam automaticamente quando restarem menos de 10 registros nessa condição. Links válidos emitidos antes da suspensão continuam permitindo a baixa; um link expirado exige conferência com a portaria. A regra é consultada a cada emissão, nas listagens e na atualização da portaria a cada minuto quando a tela está visível.
