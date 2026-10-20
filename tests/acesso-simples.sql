@@ -44,7 +44,13 @@ begin
  if r->>'ok'<>'true' then raise exception 'Cadastro simples falhou';end if;
  select id into pedido from portal_private.pedidos where bloco='A' and apartamento='01';
  if not exists(select 1 from portal_private.pedidos where id=pedido and whatsapp='5555999991234')then raise exception 'DDD55 incorreto';end if;
- perform public.portal_gateway('aprovar',jsonb_build_object('id',pedido),s);
+ r:=public.portal_gateway('solicitacoes','{}',s);
+ if r->>'codigo'<>'403' then raise exception 'Portaria acessou solicitações';end if;
+ r:=public.portal_gateway('aprovar',jsonb_build_object('id',pedido),s);
+ if r->>'codigo'<>'403' then raise exception 'Portaria aprovou cadastro';end if;
+ r:=public.portal_gateway('rejeitar',jsonb_build_object('id',pedido),s);
+ if r->>'codigo'<>'403' then raise exception 'Portaria rejeitou cadastro';end if;
+ perform public.admin_operacao('aprovar',jsonb_build_object('id',pedido));
  select id into mid2 from public.moradores where bloco='A' and apartamento='01' and ativo;
  if mid2=mid or mid2 is null then raise exception 'Cadastro antigo foi reutilizado';end if;
  if not exists(select 1 from public.encomendas where id=eid and morador_id=mid)then raise exception 'Histórico transferido';end if;

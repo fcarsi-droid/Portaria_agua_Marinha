@@ -93,6 +93,9 @@ begin
  if coalesce(p_sessao,'') !~ '^[a-f0-9]{64}$' then return jsonb_build_object('erro','Entre com a senha da portaria.','codigo',401);end if;
  select * into sess from portal_private.sessoes_portaria where token_hash=encode(extensions.digest(p_sessao,'sha256'),'hex') and expira_em>now() and not revogada;
  if not found then return jsonb_build_object('erro','Sessão encerrada. Entre novamente.','codigo',401);end if;
+ if p_acao in ('solicitacoes','aprovar','rejeitar') then
+   return jsonb_build_object('erro','Cadastros são gerenciados somente pela administração.','codigo',403);
+ end if;
  if p_acao='sair' then update portal_private.sessoes_portaria set revogada=true where id=sess.id;return jsonb_build_object('ok',true);
  elsif p_acao='sessao' then return jsonb_build_object('ok',true);
  elsif p_acao in ('registrar','avisar') then

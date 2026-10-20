@@ -40,6 +40,7 @@ jobs:
           psql -v ON_ERROR_STOP=1 -f supabase/migrations/20261020154817_corrigir_alias_portal.sql
           psql -v ON_ERROR_STOP=1 -f supabase/migrations/20261020173843_acesso_simples_portaria_links_seguros.sql
           psql -v ON_ERROR_STOP=1 -f supabase/migrations/20261020181223_corrigir_variavel_papel_perfil_administrador.sql
+          psql -v ON_ERROR_STOP=1 -f supabase/migrations/20261020183541_restringir_aprovacao_cadastros_administracao.sql
           psql -v ON_ERROR_STOP=1 -f supabase/changes/suspensao-avisos.sql
           psql -v ON_ERROR_STOP=1 -f tests/acesso-simples.sql
           psql -v ON_ERROR_STOP=1 -f tests/suspensao-avisos.sql

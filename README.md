@@ -2,9 +2,9 @@
 
 ## Fluxo acordado
 - Porteiro: mesma tela e uma senha, sem e-mail ou conta individual. Seleciona bloco/apartamento, volumes e registra; o WhatsApp abre na sequência e precisa ter o envio concluído pelo porteiro.
-- Morador: nome, bloco, apartamento e WhatsApp. Sem senha, e-mail ou conta. A portaria confere a solicitação.
+- Morador: nome, bloco, apartamento e WhatsApp. Sem senha, e-mail ou conta. A administração confere e aprova a solicitação.
 - Encomenda: link aleatório específico para o volume, com prazo de 30 dias; o link nunca dá acesso a uma lista de moradores.
-- Mudança: portaria abre “Moradores e mudanças”, escolhe “Morador se mudou” e confirma a unidade. Encomendas pendentes impedem a saída. Cadastro antigo e histórico são preservados. Novo morador recebe novo ID.
+- Mudança: portaria abre “Morador se mudou” no alto da tela, escolhe “Morador se mudou” e confirma a unidade. Encomendas pendentes impedem a saída. Cadastro antigo e histórico são preservados. Novo morador recebe novo ID.
 - Administração: somente o administrador usa e-mail. Configura a senha da portaria uma vez (pode reutilizar a senha conhecida se atender aos 8 caracteres mínimos).
 
 ## Suspensão de avisos por pendências
@@ -48,3 +48,6 @@ O workflow usa PostgreSQL isolado, aplica o esquema e testa a migração nova; n
 O teste Playwright usa gateway simulado e verifica o fluxo familiar, ausência de e-mail para porteiros/moradores, WhatsApp, confirmação, mudança e uso no celular.
 
 Para desenvolvimento: `npm ci`, `npx playwright install chromium`, `npm run check`, `npm test`. Os testes SQL estão em `tests/acesso-simples.sql` e `tests/suspensao-avisos.sql`; usam o esquema isolado e as migrações indicadas no workflow. A suspensão verifica limites de quantidade e idade, status, isolamento entre unidades, registro idempotente, bloqueio também para o administrador e desbloqueio por baixa. Playwright verifica alerta, mensagem de suspensão e retorno do aviso normal.
+
+## Responsabilidades de cadastro
+Somente a administração lista, aprova ou rejeita solicitações. A sessão compartilhada da portaria recebe 403 nessas ações. A portaria registra mudanças no cartão “Morador se mudou”, antes de Nova Encomenda; não aprova novos moradores. Migração 20261020183541 aplicada e validada. A suspensão de avisos permanece não autorizada e não aplicada.
