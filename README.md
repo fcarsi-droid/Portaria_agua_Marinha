@@ -7,6 +7,15 @@
 - Mudança: portaria abre “Moradores e mudanças”, escolhe “Morador se mudou” e confirma a unidade. Encomendas pendentes impedem a saída. Cadastro antigo e histórico são preservados. Novo morador recebe novo ID.
 - Administração: somente o administrador usa e-mail. Configura a senha da portaria uma vez (pode reutilizar a senha conhecida se atender aos 8 caracteres mínimos).
 
+## Suspensão de avisos por pendências
+A partir de 10 registros de recebimento DISPONÍVEL do mesmo morador, cada um com mais de 10 dias corridos (240 horas), o servidor deixa de emitir novos links de aviso. Conta recebimentos, não a soma de volumes. ENTREGUE, DEVOLVIDA e DIVERGÊNCIA não entram na contagem; divergência depende de conferência da portaria.
+
+O registro de novas encomendas e todas as baixas continuam funcionando. Avisos voltam automaticamente quando restarem menos de 10 registros nessa condição. Links válidos emitidos antes da suspensão continuam permitindo a baixa; um link expirado exige conferência com a portaria. A regra é consultada a cada emissão, nas listagens e na atualização da portaria a cada minuto quando a tela está visível.
+
+Portaria e administração mostram o alerta e um botão específico para preparar a mensagem de suspensão no WhatsApp. A mensagem precisa ser enviada pelo porteiro; abrir o link não comprova entrega. O portal não usa API automática de WhatsApp.
+
+A suspensão vale na nova versão. A raiz antiga continua operando até o corte coordenado.
+
 ## Segurança
 Senha da portaria verificada no servidor com bcrypt. Sessões opacas aleatórias de 256 bits, armazenadas por hash no banco e com validade de 12 horas. Logout e troca de senha revogam sessões. Em acesso compartilhado não é possível atribuir uma operação a um porteiro específico; auditoria registra a sessão, sem inventar uma identidade individual.
 
@@ -23,7 +32,7 @@ A migração de acesso simples foi autorizada pelo proprietário e aplicada em p
 Os dados existentes foram preservados: 104 moradores e 5.784 encomendas na conferência após a migração. O banco continua recebendo movimentação normal.
 
 Ainda falta **uma configuração pelo administrador**, sem senha no chat:
-1. Em `/nova-versao/admin.html`, criar/confirmar a conta do e-mail escolhido pelo proprietário.
+1. Entrar em `/nova-versao/admin.html` com a conta do administrador já confirmada.
 2. Abrir “Senha da portaria” e definir a senha que será usada pela equipe. Porteiros não criam conta por e-mail.
 3. Testar essa senha em `/nova-versao/portaria.html`.
 4. Somente após a validação, publicar as páginas simples na raiz e aplicar o bloqueio das políticas anônimas antigas no mesmo corte.
@@ -36,4 +45,4 @@ Nenhum cadastro foi apagado. As políticas anônimas antigas permanecem ativas a
 O workflow usa PostgreSQL isolado, aplica o esquema e testa a migração nova; não usa dados de produção nem envia mensagens. Testa senha, hashes, rate limit, sessão, idempotência, isolamento por token, baixa sem campos novos, mudança e histórico.
 O teste Playwright usa gateway simulado e verifica o fluxo familiar, ausência de e-mail para porteiros/moradores, WhatsApp, confirmação, mudança e uso no celular.
 
-Para desenvolvimento: `npm ci`, `npx playwright install chromium`, `npm run check`, `npm test`. O SQL está em `tests/acesso-simples.sql`; requer o esquema de teste mais as três migrações indicadas no workflow.
+Para desenvolvimento: `npm ci`, `npx playwright install chromium`, `npm run check`, `npm test`. Os testes SQL estão em `tests/acesso-simples.sql` e `tests/suspensao-avisos.sql`; usam o esquema isolado e as migrações indicadas no workflow. A suspensão verifica limites de quantidade e idade, status, isolamento entre unidades, registro idempotente, bloqueio também para o administrador e desbloqueio por baixa. Playwright verifica alerta, mensagem de suspensão e retorno do aviso normal.

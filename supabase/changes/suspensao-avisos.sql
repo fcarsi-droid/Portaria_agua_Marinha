@@ -31,7 +31,7 @@ begin
  update portal_private.links_encomendas set revogado=true where encomenda_id=enc.id and not revogado;
  insert into portal_private.links_encomendas(token_hash,encomenda_id,expira_em) values(encode(extensions.digest(t,'sha256'),'hex'),enc.id,now()+interval '30 days');
  return to_jsonb(enc)||jsonb_build_object('token',t)||situacao;
-end $function$
+end $function$;
 
 CREATE OR REPLACE FUNCTION portal_private.gateway(p_acao text, p_dados jsonb DEFAULT '{}'::jsonb, p_sessao text DEFAULT NULL::text, p_token text DEFAULT NULL::text, p_origem text DEFAULT ''::text)
  RETURNS jsonb
@@ -107,7 +107,7 @@ begin
    return portal_private.emitir_link(enc.id);
  end if;
  return portal_private.operar_portaria(sess.id,p_acao,p_dados);
-end $function$
+end $function$;
 
 CREATE OR REPLACE FUNCTION portal_private.operar_portaria(p_autor uuid, p_acao text, p_dados jsonb DEFAULT '{}'::jsonb)
  RETURNS jsonb
@@ -193,4 +193,4 @@ begin
  end if;
 
  raise exception 'Operação inválida.';
-end $function$
+end $function$;

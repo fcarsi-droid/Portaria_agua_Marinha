@@ -40,7 +40,7 @@ function mostrarSuspensao(item,m){
 }
 function renderAlertasAvisos(){
  const box=document.getElementById('alertas-avisos');if(!box)return;
- const moradores=[...new Map(window.pendenciasGlobal.filter(e=>e.avisos_bloqueados).map(e=>[e.morador_id,e])).values()];
+ const moradores=[...new Map(window.pendenciasGlobal.filter(e=>e.avisos_bloqueados&&e.status==='DISPONÍVEL').map(e=>[e.morador_id,e])).values()];
  box.hidden=!moradores.length;box.replaceChildren();
  if(!moradores.length)return;
  const titulo=document.createElement('strong');titulo.textContent='Avisos suspensos por pendências antigas';box.append(titulo);
