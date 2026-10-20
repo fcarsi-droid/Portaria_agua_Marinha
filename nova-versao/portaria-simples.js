@@ -70,7 +70,7 @@ async function exportarXLS(){try{const rows=[];for(let offset=0;;offset+=500){co
         const hoje = new Date();
         const grupos = {};
 
-        data.forEach(item => {
+        [...data].sort((a,b)=>new Date(b.criado_em)-new Date(a.criado_em)||Number(b.id)-Number(a.id)).forEach(item => {
             const d = new Date(item.criado_em);
             const chave = d.toLocaleDateString('pt-BR');
             if (!grupos[chave]) grupos[chave] = { label: '', items: [], data: d };
@@ -88,7 +88,7 @@ async function exportarXLS(){try{const rows=[];for(let offset=0;;offset+=500){co
         });
 
         let html = '';
-        Object.keys(grupos).sort((a,b) => grupos[a].data - grupos[b].data).forEach(chave => {
+        Object.keys(grupos).sort((a,b) => grupos[b].data - grupos[a].data).forEach(chave => {
             const g = grupos[chave];
             const atrasado = g.diasAtraso >= 3;
             html += `<div class="dia-grupo">
