@@ -1,0 +1,2 @@
+[functions.portal-simples]
+verify_jwt = false

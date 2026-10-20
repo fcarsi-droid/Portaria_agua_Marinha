@@ -1,56 +1,38 @@
-# Portal de encomendas — Água Marinha
+# Portal Água Marinha — acesso simples
 
-Aplicação estática em HTML/CSS/JavaScript com Supabase Auth e operações autorizadas no PostgreSQL. Sem servidor local obrigatório para o usuário; hospedagem atual no GitHub Pages é preservada.
+## Fluxo acordado
+- Porteiro: mesma tela e uma senha, sem e-mail ou conta individual. Seleciona bloco/apartamento, volumes e registra; o WhatsApp abre na sequência e precisa ter o envio concluído pelo porteiro.
+- Morador: nome, bloco, apartamento e WhatsApp. Sem senha, e-mail ou conta. A portaria confere a solicitação.
+- Encomenda: link aleatório específico para o volume, com prazo de 30 dias; o link nunca dá acesso a uma lista de moradores.
+- Mudança: portaria abre “Moradores e mudanças”, escolhe “Morador se mudou” e confirma a unidade. Encomendas pendentes impedem a saída. Cadastro antigo e histórico são preservados. Novo morador recebe novo ID.
+- Administração: somente o administrador usa e-mail. Configura a senha da portaria uma vez (pode reutilizar a senha conhecida se atender aos 8 caracteres mínimos).
 
-## O que mudou
+## Segurança
+Senha da portaria verificada no servidor com bcrypt. Sessões opacas aleatórias de 256 bits, armazenadas por hash no banco e com validade de 12 horas. Logout e troca de senha revogam sessões. Em acesso compartilhado não é possível atribuir uma operação a um porteiro específico; auditoria registra a sessão, sem inventar uma identidade individual.
 
-- Central da portaria com recebimento, busca sem acentos, filtro de atraso, WhatsApp explícito, retirada com nome do recebedor e devolução com motivo.
-- Mudança de morador: desativa o cadastro e libera a unidade, mantendo o ID e o histórico do antigo destinatário. Encomendas disponíveis ou em divergência impedem a saída até serem resolvidas.
-- Novo morador cria sua conta e solicita vínculo; portaria confere e aprova. O cadastro ativo do antigo morador nunca é sobrescrito. Cadastros legados podem ser vinculados ao mesmo morador mediante confirmação da portaria.
-- Login individual, confirmação de e-mail, recuperação de senha e permissões consultadas no servidor. Equipe desativada perde a autorização imediatamente. Antigo morador não vê a unidade mesmo com JWT ainda válido.
-- Histórico completo paginado, relatório CSV compatível com Excel e indicadores com registros próximos para conferência, retiradas por origem e unidades com pendências.
-- Engano gera DIVERGÊNCIA, não uma falsa entrega; portaria confere o destinatário ou devolve fisicamente o volume.
-- Registro idempotente, validações no servidor, transações e bloqueios por destinatário para proteger contra operações simultâneas.
-- SDK Supabase 2.118.0 mantido no próprio repositório para evitar falha de CDN em uso diário; chave publishable é pública por definição. Nunca usar service_role no frontend.
+Links também usam 256 bits e hash no banco, são restritos a uma encomenda e deixam de funcionar após a mudança. Token fica no fragmento da URL, com referrer desativado. Link antigo sem token não é aceito. Reenvio de aviso revoga o link anterior. A posse do link autoriza a confirmação, sem provar a identidade de quem clicou.
 
-## Estado da implantação
+O gateway Edge `portal-simples` verifica a sessão ou o token em cada operação. `verify_jwt=false` é intencional: moradores não têm conta Auth; a autenticação ocorre pelo próprio gateway. A RPC interna só é executável por service_role. O frontend não recebe essa chave. Há limitação de tentativas e validação no servidor.
 
-As migrações `20261020154639` e `20261020154817` foram aplicadas ao projeto conectado. Elas adicionam campos e a API segura sem remover os dados existentes. A conta inicial de administrador foi configurada privadamente com o e-mail escolhido pelo proprietário; a pessoa ainda deve criar a conta pelo Auth e confirmar seu e-mail.
+Baixa simples não exige um campo novo nem inventa o nome de quem retirou. Devolução pede motivo. Engano sinaliza DIVERGÊNCIA em vez de entrega.
 
-**A migração `bloquear_acesso_anonimo` ainda não foi aplicada.** Ela bloqueia o acesso usado pelo frontend antigo, por isso deve ser aplicada no corte coordenado para esta versão. Até o corte, as políticas antigas continuam abertas. Não considerar a segurança de produção concluída antes dessa etapa.
+## Estado e publicação
+As duas migrações anteriores de estrutura/API já existem no banco. **A migração nova de acesso simples não foi aplicada:** a revisão automática rejeitou uma alteração persistente da autenticação em produção sem aprovação específica. Também não foi feito o corte do frontend nem o bloqueio das políticas anônimas antigas.
 
-## Antes de publicar
+A implementação nova está neste PR para teste e aprovação. A versão atualmente em `/nova-versao/` ainda corresponde ao fluxo anterior com e-mail e será substituída somente após a preparação do servidor. Não orientar porteiros ou moradores a criar contas nela.
 
-1. Em Supabase → Authentication → URL Configuration, configurar Site URL `https://portalaguamarinha.com.br` (domínio canônico observado) e permitir os redirects `https://portalaguamarinha.com.br/cadastro.html` e `https://portalaguamarinha.com.br/nova-versao/cadastro.html`; incluir também as duas variantes com `www` enquanto forem usadas.
-2. Em Authentication → Email, verificar envio de confirmação e recuperação. O serviço de e-mail padrão do Supabase pode aceitar somente endereços autorizados da equipe e possui limites baixos. Configurar SMTP próprio antes de liberar cadastro para todos os moradores. Não desabilitar confirmação para contornar isso.
-3. A versão de validação foi disponibilizada em `/nova-versao/`, sem substituir as páginas atuais. Usar os redirects descritos no item 1. A versão de validação usa o banco real; operações são reais, não uma demonstração com dados fictícios. Criar/confirmar a conta inicial nessa versão. O e-mail foi escolhido pelo proprietário e está em tabela privada; não há senha inicial no código.
-4. Confirmar login do administrador, testar portaria e aprovação com uma unidade autorizada para homologação.
-5. Publicar os arquivos de aplicação juntos e aplicar a migração de corte. Verificar que leituras REST anônimas de moradores/encomendas falham, que login funciona e que registros antigos foram preservados.
-6. Cada membro da portaria cria e confirma a própria conta. Administrador libera seu e-mail na aba Equipe.
+Sequência de publicação após aprovação:
+1. Aplicar a migração de acesso simples.
+2. Publicar a Edge Function e testar negativas de senha, sessão e token.
+3. Administrador cria/confirma seu único login e configura a senha conhecida da portaria em “Senha da portaria”. Não pedir a senha no chat.
+4. Testar o login da portaria e o recebimento em unidade autorizada.
+5. Publicar as páginas simples e aplicar o bloqueio do acesso direto anônimo no mesmo corte.
+6. Reenviar os avisos antigos ainda pendentes para gerar os novos links protegidos.
 
-Se a confirmação de e-mail apontar para uma URL antiga, o vínculo pode já ter sido confirmado no Auth. Corrigir URL Configuration e testar novamente a navegação. Não afirmar que o envio de e-mails funciona sem verificar recebimento.
-
-## Segurança e permissões
-
-A API pública é `public.portal`, `SECURITY INVOKER`, executável somente por `authenticated`. Ela encaminha para a função privada `portal_private.executar`, que exige `auth.uid()`, usuário com e-mail confirmado, sessão não revogada e papel/pertencimento válido para cada ação. O schema privado não deve ser incluído na lista de schemas expostos do Data API.
-
-A função privada é `SECURITY DEFINER` deliberadamente, com `search_path` vazio e nomes qualificados. Permite somente operações pré-definidas, sem SQL dinâmico. Não se usa `user_metadata` para autorização. Tabelas privadas têm RLS sem políticas e sem grants diretos ao cliente; isso é intencional (acesso negado fora da API), não uma ausência acidental de proteção. [Explicação do aviso informativo do Advisor](https://supabase.com/docs/guides/database/database-linter?lint=0008_rls_enabled_no_policy).
-
-A retirada/devolução/mudança registra autor e horário. Não se apagam permanentemente moradores, encomendas ou usuários Auth. Sessões do browser ficam em sessionStorage e são removidas no logout. A saída do morador corta imediatamente seu acesso à unidade via banco, embora a conta pessoal continue existindo para eventual novo cadastro aprovado.
+Não foi apagado nenhum cadastro. As antigas políticas abertas permanecem até o corte; a segurança de produção ainda não está concluída.
 
 ## Testes
+O workflow usa PostgreSQL isolado, aplica o esquema e testa a migração nova; não usa dados de produção nem envia mensagens. Testa senha, hashes, rate limit, sessão, idempotência, isolamento por token, baixa sem campos novos, mudança e histórico.
+O teste Playwright usa gateway simulado e verifica o fluxo familiar, ausência de e-mail para porteiros/moradores, WhatsApp, confirmação, mudança e uso no celular.
 
-`tests/banco.sql` executa uma transação com usuários fictícios e termina em ROLLBACK. Testa idempotência, quantidades, isolamento de contas, divergência, bloqueio de saída com pendências, confirmação de unidade, revogação de acesso após saída, aprovação de novo morador com novo ID e preservação do histórico, além de revogação da equipe e sessão. Executado com sucesso no banco conectado, sem usuários ou dados fictícios persistentes (sequências podem ter lacunas).
-
-Interface: `npm ci`, `npx playwright install chromium`, `npm run check`, `npm test`. Testes usam banco simulado, sem acesso aos dados de produção. Incluem telas desktop/mobile, filtro, WhatsApp, dupla submissão, retirada, mudança bloqueada e liberada, morador, divergência e escape de HTML. O workflow do GitHub executa a verificação e guarda capturas de tela.
-
-O ambiente local restringiu sockets do Chromium; os testes de navegador passaram no GitHub Actions, em computador e celular. Validação de sintaxe e testes reais transacionais do banco também passaram. A execução inicial está em https://github.com/fcarsi-droid/Portaria_agua_Marinha/actions/runs/39452765495.
-
-## Limites conhecidos
-
-- Cadastro de pessoas depende de confirmação de e-mail e SMTP configurado. Envio de WhatsApp é manual pelo aplicativo do porteiro, sem confirmação automática de entrega.
-- Lista do morador mostra os últimos 300 registros. A portaria tem histórico e exportação completos.
-- Paginação por offset pode sofrer alterações entre páginas se houver novos registros simultâneos. Para auditoria fechada, gerar relatório em período de pouca movimentação ou evoluir para fotografia transacional.
-- O export atual é CSV UTF-8 com separador `;`, abre no Excel. Não é XLSX.
-- Rótulos e filtros de idade usam dias de calendário do dispositivo; dispositivos devem estar com fuso/relógio corretos.
-- Antes de coletar mais dados de moradores, definir política de retenção e necessidade; esta revisão preserva os dados históricos existentes.
+Para desenvolvimento: `npm ci`, `npx playwright install chromium`, `npm run check`, `npm test`. O SQL está em `tests/acesso-simples.sql`; requer o esquema de teste mais as três migrações indicadas no workflow.
