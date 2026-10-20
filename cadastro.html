@@ -529,6 +529,7 @@
     const supabaseKey = 'sb_publishable_kuJIAQ5crRqZlNO5spRdJQ__G9QLrjI';
     const client = supabase.createClient(supabaseUrl, supabaseKey);
     let SENHA_MORADOR = null;
+    let senhaCarregada = false;
 
     // Gera opções de apartamento
     const selApto = document.getElementById('apto');
@@ -539,16 +540,32 @@
 
     // Busca senha do banco ao carregar
     (async () => {
-        const { data: cfg } = await client
-            .from('configuracoes')
-            .select('valor')
-            .eq('chave', 'senha_morador')
-            .single();
-        if (cfg) SENHA_MORADOR = cfg.valor;
+        try {
+            const { data: cfg } = await client
+                .from('configuracoes')
+                .select('valor')
+                .eq('chave', 'senha_morador')
+                .single();
+            if (cfg) SENHA_MORADOR = cfg.valor;
+        } catch(e) {
+            console.error('Erro ao buscar senha:', e);
+        }
+        senhaCarregada = true;
     })();
 
     // ── SENHA ──
-    function acessar() {
+    async function acessar() {
+        const btn = document.querySelector('.btn-entrar');
+        // Se ainda carregando, aguarda até 3s
+        if (!senhaCarregada) {
+            if (btn) { btn.textContent = 'Aguarde...'; btn.disabled = true; }
+            let tentativas = 0;
+            while (!senhaCarregada && tentativas < 30) {
+                await new Promise(r => setTimeout(r, 100));
+                tentativas++;
+            }
+            if (btn) { btn.textContent = 'Entrar'; btn.disabled = false; }
+        }
         if (SENHA_MORADOR && document.getElementById('input-senha').value === SENHA_MORADOR) {
             document.getElementById('div-senha').style.display = 'none';
             document.getElementById('div-form').style.display = 'block';
