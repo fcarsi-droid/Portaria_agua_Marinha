@@ -551,6 +551,8 @@
             console.error('Erro ao buscar senha:', e);
         }
         senhaCarregada = true;
+        // fallback: se não conseguiu buscar do banco, usa senha padrão
+        if (!SENHA_MORADOR) SENHA_MORADOR = 'morador2026';
     })();
 
     // ── SENHA ──
