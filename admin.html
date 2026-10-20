@@ -357,6 +357,59 @@
         }
 
         .alerta-chevron.aberto { transform: rotate(180deg); }
+
+        /* ══ Solicitações ══ */
+        .sol-item {
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+            padding: 14px 16px;
+            border-bottom: 1px solid var(--border);
+        }
+
+        .sol-item:last-child { border-bottom: none; }
+
+        .sol-info {
+            font-size: 13px;
+            color: var(--text);
+            font-weight: 600;
+        }
+
+        .sol-sub {
+            font-size: 12px;
+            color: var(--text-muted);
+        }
+
+        .sol-acoes {
+            display: flex;
+            gap: 8px;
+            margin-top: 4px;
+        }
+
+        .btn-aprovar, .btn-rejeitar {
+            flex: 1;
+            border: none;
+            border-radius: 8px;
+            padding: 9px 12px;
+            font-size: 12px;
+            font-weight: 700;
+            font-family: 'Plus Jakarta Sans', sans-serif;
+            cursor: pointer;
+            transition: opacity 0.2s;
+        }
+
+        .btn-aprovar {
+            background: var(--green);
+            color: white;
+        }
+
+        .btn-rejeitar {
+            background: #fee2e2;
+            color: var(--red);
+        }
+
+        .btn-aprovar:active, .btn-rejeitar:active { opacity: 0.75; }
+        .btn-aprovar:disabled, .btn-rejeitar:disabled { opacity: 0.5; cursor: not-allowed; }
     </style>
 </head>
 <body>
@@ -486,6 +539,19 @@
             </div>
         </div>
 
+        <!-- Solicitações de cadastro pendentes -->
+        <div class="secao">
+            <div class="secao-header">
+                <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24" style="color:var(--green)">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M15.75 6a3.75 3.75 0 11-7.5 0 3.75 3.75 0 017.5 0zM4.501 20.118a7.5 7.5 0 0114.998 0A17.933 17.933 0 0112 21.75c-2.676 0-5.216-.584-7.499-1.632z"/>
+                </svg>
+                <h2>Solicitações de Cadastro Pendentes</h2>
+            </div>
+            <div class="secao-body" id="lista-solicitacoes">
+                <div class="vazio">Carregando...</div>
+            </div>
+        </div>
+
     </div>
 </div>
 
@@ -493,22 +559,27 @@
     const SUPABASE_URL = 'https://esegzalccqvoypdpencs.supabase.co';
     const SUPABASE_KEY = 'sb_publishable_kuJIAQ5crRqZlNO5spRdJQ__G9QLrjI';
     const sb = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
-    const SENHA_HASH = '4010a3dae1803e72e699650de00515dbf85be8e077354fa611385013d5d77063';
+    let SENHA = null;
 
     // Período: junho 2026 em diante
     const INICIO = '2026-06-01T00:00:00.000Z';
 
-    async function hashText(value) {
-        const data = new TextEncoder().encode(value);
-        const digest = await crypto.subtle.digest('SHA-256', data);
-        return [...new Uint8Array(digest)].map(b => b.toString(16).padStart(2, '0')).join('');
-    }
+    // Busca a senha do banco ao carregar
+    (async () => {
+        const { data: cfg } = await sb
+            .from('configuracoes')
+            .select('valor')
+            .eq('chave', 'senha_admin')
+            .single();
+        if (cfg) SENHA = cfg.valor;
+    })();
 
-    async function fazerLogin() {
-        if (await hashText(document.getElementById('senha-input').value) === SENHA_HASH) {
+    function fazerLogin() {
+        if (SENHA && document.getElementById('senha-input').value === SENHA) {
             document.getElementById('tela-login').style.display = 'none';
             document.getElementById('tela-sistema').style.display = 'block';
             carregarDados();
+            carregarSolicitacoes();
         } else {
             document.getElementById('login-erro').style.display = 'block';
             document.getElementById('senha-input').value = '';
@@ -765,6 +836,74 @@
                 <div class="linha-badge ${badgeClass}">${diasLabel}</div>
             </div>`;
         }).join('');
+    }
+
+    // ── SOLICITAÇÕES DE CADASTRO ──
+    async function carregarSolicitacoes() {
+        const cont = document.getElementById('lista-solicitacoes');
+        if (!cont) return;
+
+        const { data } = await sb
+            .from('solicitacoes')
+            .select('*')
+            .eq('status', 'PENDENTE')
+            .order('criado_em', { ascending: true });
+
+        if (!data || data.length === 0) {
+            cont.innerHTML = '<div class="vazio"><svg fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M9 12.75L11.25 15 15 9.75M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg><p>Nenhuma solicitação pendente</p></div>';
+            return;
+        }
+
+        cont.innerHTML = data.map(function(sol) {
+            var dt = new Date(sol.criado_em).toLocaleDateString('pt-BR', { day: '2-digit', month: '2-digit', year: 'numeric', hour: '2-digit', minute: '2-digit' });
+            return '<div class="sol-item" id="sol-' + sol.id + '">' +
+                '<div class="sol-info">' + sol.nome + '</div>' +
+                '<div class="sol-sub">Bloco ' + sol.bloco + ' · Apto ' + sol.apartamento + ' · WhatsApp: ' + sol.whatsapp + '</div>' +
+                '<div class="sol-sub">Solicitado em: ' + dt + '</div>' +
+                '<div class="sol-acoes">' +
+                '<button class="btn-aprovar" onclick="aprovarSolicitacao(' + sol.id + ',\'' + sol.bloco + '\',\'' + sol.apartamento + '\',\'' + sol.nome.replace(/'/g,'\\\'') + '\',\'' + sol.whatsapp + '\',this)">✓ Aprovar</button>' +
+                '<button class="btn-rejeitar" onclick="rejeitarSolicitacao(' + sol.id + ',this)">✕ Rejeitar</button>' +
+                '</div></div>';
+        }).join('');
+    }
+
+    async function aprovarSolicitacao(id, bloco, apartamento, nome, whatsapp, btn) {
+        btn.disabled = true;
+        btn.nextElementSibling.disabled = true;
+        btn.textContent = 'Processando...';
+
+        var existe_res = await sb.from('moradores').select('id').eq('bloco', bloco).eq('apartamento', apartamento).maybeSingle();
+        var existe = existe_res.data;
+        var erro;
+
+        if (existe) {
+            var upd = await sb.from('moradores').update({ nome: nome, whatsapp: whatsapp }).eq('id', existe.id);
+            erro = upd.error;
+        } else {
+            var ins = await sb.from('moradores').insert([{ bloco: bloco, apartamento: apartamento, nome: nome, whatsapp: whatsapp }]);
+            erro = ins.error;
+        }
+
+        if (erro) {
+            alert('Erro ao aprovar: ' + erro.message);
+            btn.disabled = false;
+            btn.nextElementSibling.disabled = false;
+            btn.textContent = '✓ Aprovar';
+            return;
+        }
+
+        await sb.from('solicitacoes').update({ status: 'APROVADO' }).eq('id', id);
+        var el = document.getElementById('sol-' + id);
+        if (el) el.style.display = 'none';
+    }
+
+    async function rejeitarSolicitacao(id, btn) {
+        btn.disabled = true;
+        btn.previousElementSibling.disabled = true;
+        btn.textContent = 'Processando...';
+        await sb.from('solicitacoes').update({ status: 'REJEITADO' }).eq('id', id);
+        var el = document.getElementById('sol-' + id);
+        if (el) el.style.display = 'none';
     }
 </script>
 </body>

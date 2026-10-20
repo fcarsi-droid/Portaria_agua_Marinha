@@ -997,7 +997,7 @@
     const SUPABASE_URL = 'https://esegzalccqvoypdpencs.supabase.co';
     const SUPABASE_KEY = 'sb_publishable_kuJIAQ5crRqZlNO5spRdJQ__G9QLrjI';
     const supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
-    const SENHA_CORRETA = "RDEAM2026#";
+    let SENHA_CORRETA = null;
 
     const urlParams = new URLSearchParams(window.location.search);
     const encomendaId = urlParams.get('id');
@@ -1013,6 +1013,14 @@
 
     // ── INIT ──
     async function inicializar() {
+        // Busca a senha do banco antes de qualquer coisa
+        const { data: cfg } = await supabaseClient
+            .from('configuracoes')
+            .select('valor')
+            .eq('chave', 'senha_portaria')
+            .single();
+        if (cfg) SENHA_CORRETA = cfg.valor;
+
         if (encomendaId) {
             document.getElementById('visao-morador').classList.remove('hidden');
             await exibirVisaoMorador();
@@ -1030,7 +1038,7 @@
 
     // ── LOGIN ──
     function verificarSenha() {
-        if (document.getElementById('senha-input').value.trim() === SENHA_CORRETA) {
+        if (SENHA_CORRETA && document.getElementById('senha-input').value.trim() === SENHA_CORRETA) {
             localStorage.setItem('portaria_logado', 'true');
             location.reload();
         } else {

@@ -528,7 +528,7 @@
     const supabaseUrl = 'https://esegzalccqvoypdpencs.supabase.co';
     const supabaseKey = 'sb_publishable_kuJIAQ5crRqZlNO5spRdJQ__G9QLrjI';
     const client = supabase.createClient(supabaseUrl, supabaseKey);
-    const SENHA_CADASTRO_HASH = '3926e2902c40a7e662dcbd99cb9cafa865ea07df37dda602617acbfd43ec2264';
+    let SENHA_MORADOR = null;
 
     // Gera opções de apartamento
     const selApto = document.getElementById('apto');
@@ -537,15 +537,19 @@
         selApto.innerHTML += `<option value="${n}">${n}</option>`;
     }
 
-    // ── SENHA ──
-    async function hashText(value) {
-        const data = new TextEncoder().encode(value);
-        const digest = await crypto.subtle.digest('SHA-256', data);
-        return [...new Uint8Array(digest)].map(b => b.toString(16).padStart(2, '0')).join('');
-    }
+    // Busca senha do banco ao carregar
+    (async () => {
+        const { data: cfg } = await client
+            .from('configuracoes')
+            .select('valor')
+            .eq('chave', 'senha_morador')
+            .single();
+        if (cfg) SENHA_MORADOR = cfg.valor;
+    })();
 
-    async function acessar() {
-        if (await hashText(document.getElementById('input-senha').value) === SENHA_CADASTRO_HASH) {
+    // ── SENHA ──
+    function acessar() {
+        if (SENHA_MORADOR && document.getElementById('input-senha').value === SENHA_MORADOR) {
             document.getElementById('div-senha').style.display = 'none';
             document.getElementById('div-form').style.display = 'block';
         } else {
@@ -632,9 +636,20 @@
                 .maybeSingle();
 
             if (existe) {
-                status.innerHTML = '⚠️ Este apartamento já possui cadastro. Se os dados estiverem incorretos, entre em contato com o síndico.';
+                // Apartamento já cadastrado → abre solicitação para aprovação
+                const { error: errSol } = await client
+                    .from('solicitacoes')
+                    .insert([{ bloco, apartamento: apto, nome, whatsapp: tel }]);
+                if (errSol) throw errSol;
+                status.innerHTML = '🕐 Solicitação enviada. Como este apartamento já possui cadastro, sua solicitação será analisada pela administração. Aguarde contato.';
                 status.className = 'status-box aviso';
                 status.style.display = 'block';
+                document.getElementById('nome').value = '';
+                document.getElementById('bloco').value = '';
+                document.getElementById('apto').value = '';
+                document.getElementById('whatsapp').value = '';
+                document.getElementById('preview-box').classList.remove('ativo');
+                document.getElementById('btn-corrigir').style.display = 'none';
                 return;
             }
 
