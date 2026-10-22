@@ -23,12 +23,20 @@ begin
  assert (select count(*) from public.encomendas where morador_id=mid)=2,'somente duas remessas';
  r:=portal_private.gateway('registrar',jsonb_build_object('morador_id',mid,'quantidade',2,'operacao_id',gen_random_uuid()),t);
  assert r->>'token' is not null,'quantidade diferente deve permitir';
- update public.encomendas set criado_em=now()-interval '6 minutes' where morador_id=mid;
+ update public.encomendas set criado_em=now()-interval '45 seconds' where morador_id=mid;
+ r:=portal_private.gateway('registrar',jsonb_build_object('morador_id',mid,'quantidade',1,'operacao_id',gen_random_uuid()),t);
+ assert r->>'registro_existente'='true','45 segundos deve bloquear repetição';
+ update public.encomendas set criado_em=now()-interval '61 seconds' where morador_id=mid;
  r:=portal_private.gateway('registrar',jsonb_build_object('morador_id',mid,'quantidade',1,'operacao_id',gen_random_uuid()),t);
  assert r->>'token' is not null,'fora da janela permite';
  update public.encomendas set status='DIVERGÊNCIA' where id=(r->>'id')::int;
  r:=portal_private.gateway('registrar',jsonb_build_object('morador_id',mid,'quantidade',1,'operacao_id',gen_random_uuid()),t);
  assert r->>'registro_existente'='true' and r->>'status'='DIVERGÊNCIA' and not(r?'token'),'divergência recente também protegida';
+ r:=portal_private.gateway('devolver',jsonb_build_object('id',(r->>'id')::int),t);
+ assert r->>'ok'='true','porteiro encerra retorno à portaria';
+ assert (select status='DEVOLVIDA' and baixado_pela='PORTARIA' and observacao like '%Devolvida à portaria%' from public.encomendas where id=(select max(id) from public.encomendas where morador_id=mid)),'histórico deve mostrar retorno à portaria';
+ r:=portal_private.gateway('registrar',jsonb_build_object('morador_id',mid,'quantidade',1,'operacao_id',gen_random_uuid()),t);
+ assert r->>'token' is not null,'registro encerrado não impede novo cadastro';
  -- Preserve the authorized 11 shipments / oldest 96h rule.
  insert into public.encomendas(morador_id,quantidade,status,criado_em) select mid,1,'DISPONÍVEL',now()-interval '5 days' from generate_series(1,8);
  r:=portal_private.gateway('registrar',jsonb_build_object('morador_id',mid,'quantidade',3,'operacao_id',gen_random_uuid()),t);
