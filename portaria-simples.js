@@ -8,10 +8,19 @@ function atualizarHora(){document.getElementById('hora-atual').textContent=new D
 function mostrarLogin(msg=''){document.getElementById('visao-porteiro').style.display='none';document.getElementById('login-screen').classList.remove('hidden');if(msg){const e=document.getElementById('login-erro');e.textContent=msg;e.style.display='block'}}
 async function inicializar(){
  if(encomendaId||encomendaToken){document.getElementById('visao-morador').classList.remove('hidden');await exibirVisaoMorador();return}
- if(Portal.hasSession()){try{await Portal.call('sessao');await exibirVisaoPorteiro();return}catch{Portal.clear()}}
+ if(Portal.hasSession()){try{await Portal.call('sessao');await exibirVisaoPorteiro();return}catch(e){if(e.status===401)Portal.clear();else throw e}}
  mostrarLogin();
 }
-async function verificarSenha(){const btn=document.querySelector('.btn-login');if(btn.disabled)return;btn.disabled=true;try{const data=await Portal.call('entrar',{senha:document.getElementById('senha-input').value});Portal.save(data.sessao);document.getElementById('senha-input').value='';await exibirVisaoPorteiro()}catch(e){mostrarLogin(e.message)}finally{btn.disabled=false}}
+
+function tratarFalhaInicial(e){
+ if(Portal.hasSession()&&e.status!==401){
+  mostrarLogin(e.message+' Sua sessão foi mantida.');
+  document.getElementById('senha-input').hidden=true;
+  const b=document.querySelector('.btn-login');b.textContent='Tentar novamente';b.onclick=()=>location.reload();
+ }else mostrarLogin(e.message);
+}
+
+async function verificarSenha(){const btn=document.querySelector('.btn-login');if(btn.disabled)return;btn.disabled=true;try{const data=await Portal.call('entrar',{senha:document.getElementById('senha-input').value});Portal.save(data.sessao);document.getElementById('senha-input').value='';await exibirVisaoPorteiro()}catch(e){tratarFalhaInicial(e)}finally{btn.disabled=false}}
 document.getElementById('senha-input').addEventListener('keydown',e=>{if(e.key==='Enter')verificarSenha()});
 async function logout(){try{await Portal.call('sair')}catch{}Portal.clear();mostrarLogin();window.moradoresGlobal=[];window.pendenciasGlobal=[]}
 async function exibirVisaoPorteiro(){const data=await Portal.call('moradores');window.moradoresGlobal=data;const sel=document.getElementById('bloco');sel.replaceChildren(new Option('–',''));[...new Set(data.map(m=>m.bloco))].sort().forEach(b=>sel.add(new Option('Bloco '+b,b)));document.getElementById('login-screen').classList.add('hidden');document.getElementById('visao-porteiro').style.display='block';atualizarHora();await carregarPendencias()}
@@ -23,13 +32,20 @@ async function registrar(){if(registrando)return;const id=document.getElementByI
  registrando=true;const btn=document.querySelector('.btn-registrar');btn.disabled=true;
  // Abre na ação do clique para evitar bloqueio de popup após a gravação assíncrona.
  const janela=Portal.telefone(morador.whatsapp)?window.open('about:blank','_blank'):null;if(janela)janela.opener=null;
- try{const item=await Portal.call('registrar',{morador_id:id,quantidade:qtd,operacao_id:operacaoId});ultimaOperacao='';operacaoId=null;document.getElementById('bloco').value='';document.getElementById('apartamento').replaceChildren(new Option('Selecione o bloco',''));document.getElementById('qtd').value=1;document.getElementById('morador-sel').classList.remove('ativo');abrirAviso(item,morador,janela);toast('Encomenda salva. Conclua o envio no WhatsApp.','green');await carregarPendencias()}catch(e){janela?.close();toast(e.message)}finally{registrando=false;btn.disabled=false}
+ try{const item=await Portal.call('registrar',{morador_id:id,quantidade:qtd,operacao_id:operacaoId});ultimaOperacao='';operacaoId=null;document.getElementById('bloco').value='';document.getElementById('apartamento').replaceChildren(new Option('Selecione o bloco',''));document.getElementById('qtd').value=1;document.getElementById('morador-sel').classList.remove('ativo');abrirAviso(item,morador,janela);toast(item.avisos_bloqueados?'Encomenda salva. Morador com avisos suspensos.':'Encomenda salva. Conclua o envio no WhatsApp.',item.avisos_bloqueados?'':'green');await carregarPendencias()}catch(e){janela?.close();toast(e.message)}finally{registrando=false;btn.disabled=false}
 }
-function abrirAviso(item,m,janela=null){const tel=Portal.telefone(m.whatsapp);const box=document.getElementById('aviso-envio');box.hidden=false;box.replaceChildren();if(!tel){box.textContent='Registro salvo. Morador sem WhatsApp válido; avise por outro meio.';return}
+function abrirAviso(item,m,janela=null){if(item.avisos_bloqueados){janela?.close();mostrarSuspensao(item,m);return}const tel=Portal.telefone(m.whatsapp);const box=document.getElementById('aviso-envio');box.hidden=false;box.replaceChildren();if(!tel){box.textContent='Registro salvo. Morador sem WhatsApp válido; avise por outro meio.';return}
  const link=new URL('portaria.html',location.href);link.searchParams.set('id',item.id);link.hash='token='+item.token;
  const msg='📦 *CONDOMÍNIO ÁGUA MARINHA*\n\nOlá *'+m.nome+'*, chegou *'+item.quantidade+' volume(s)* para sua unidade.\nRetire na portaria e confirme somente após receber:\n'+link.href;
  const url='https://wa.me/'+tel+'?text='+encodeURIComponent(msg);const texto=document.createElement('p');texto.textContent='Encomenda registrada. Se o WhatsApp não abriu, use o botão abaixo.';const a=document.createElement('a');a.href=url;a.target='_blank';a.rel='noopener noreferrer';a.className='btn-xls';a.textContent='Abrir WhatsApp e enviar aviso';box.append(texto,a);if(janela)janela.location.replace(url)
 }
+
+function mostrarSuspensao(item,m){
+ const box=document.getElementById('aviso-envio');box.hidden=false;box.replaceChildren();
+ const p=document.createElement('p');p.textContent='Encomenda registrada para '+m.bloco+'-'+m.apartamento+'. Aviso de chegada bloqueado: '+item.remessas_sem_baixa+' remessas sem baixa e primeiro aviso pendente há pelo menos 4 dias.';box.append(p);
+ const tel=Portal.telefone(m.whatsapp);if(tel){const a=document.createElement('a');a.className='btn-xls';a.target='_blank';a.rel='noopener noreferrer';a.textContent='Informar suspensão no WhatsApp';a.href='https://wa.me/'+tel+'?text='+encodeURIComponent('⚠️ CONDOMÍNIO ÁGUA MARINHA\n\nOlá, '+m.nome+'.\n'+item.mensagem_suspensao);box.append(a)}
+}
+
 async function avisar(id){const enc=window.pendenciasGlobal.find(e=>String(e.id)===String(id));if(!enc)return;const janela=Portal.telefone(enc.moradores.whatsapp)?window.open('about:blank','_blank'):null;if(janela)janela.opener=null;try{const item=await Portal.call('avisar',{id});abrirAviso(item,enc.moradores,janela)}catch(e){janela?.close();toast(e.message)}}
 async function carregarPendencias(){try{const data=await Portal.call('pendencias');window.pendenciasGlobal=data.map(e=>({...e,moradores:{nome:e.nome||'Cadastro indisponível',bloco:e.bloco||'?',apartamento:e.apartamento||'?',whatsapp:e.whatsapp}}));document.getElementById('badge-total').textContent=data.length;filtrarPendencias();Lembretes.montar(document.getElementById('lembrete-morador'),data,{atualizar:()=>Portal.call('pendencias')})}catch(e){document.getElementById('resumo-pendencias').textContent='Não foi possível atualizar. Os dados podem estar desatualizados.';if(e.status===401)mostrarLogin(e.message);else toast(e.message)}}
 function filtrarPendencias(){const norm=s=>String(s??'').normalize('NFD').replace(/[\u0300-\u036f]/g,'').toLowerCase();const term=norm(document.getElementById('busca-pendencias').value).trim();const list=window.pendenciasGlobal.filter(e=>term.split(/\s+/).every(t=>norm(e.moradores.nome+' '+e.moradores.bloco+'-'+e.moradores.apartamento).includes(t)));document.getElementById('resumo-pendencias').textContent=list.length+' registro(s) · '+list.reduce((n,e)=>n+Number(e.quantidade),0)+' volume(s)';renderLista(list)}
@@ -105,10 +121,10 @@ async function exportarXLS(){try{const rows=[];for(let offset=0;;offset+=500){co
                         </div>
                         <div class="encomenda-nome">${Portal.escape(m.nome)}</div>
                         <div class="encomenda-data">Recebida em ${Portal.escape(dataEntrada)} · #${Portal.escape(item.id)}</div>
-                        ${item.status==='DIVERGÊNCIA'?'<strong class="encomenda-alerta">Conferir destinatário</strong>':''}
+                        ${item.status==='DIVERGÊNCIA'?'<strong class="encomenda-alerta">Conferir destinatário</strong>':''}${item.avisos_bloqueados?'<strong class="encomenda-alerta">Avisos suspensos · '+Portal.escape(item.remessas_sem_baixa)+' remessas sem baixa</strong>':''}
                         <div class="encomenda-acoes">
                             <button class="btn-baixa" data-baixa="${Portal.escape(item.id)}">Retirada</button>
-                            <button class="btn-xls" data-aviso="${Portal.escape(item.id)}">Avisar</button>
+                            <button class="btn-xls" data-aviso="${Portal.escape(item.id)}">${item.avisos_bloqueados?'Suspensão':'Avisar'}</button>
                             <button class="btn-xls" data-devolver="${Portal.escape(item.id)}">Devolver</button>
                         </div>
                     </article>`;
@@ -137,4 +153,4 @@ document.getElementById('atalho-mudanca').addEventListener('click',()=>abrirAcao
 document.getElementById('atalho-lembrete').addEventListener('click',()=>abrirAcaoPortaria('lembrete'));
 for(const [id,botao] of [['cadastros-moradores','atalho-mudanca'],['painel-lembrete','atalho-lembrete']])document.getElementById(id).addEventListener('toggle',e=>document.getElementById(botao).setAttribute('aria-expanded',String(e.target.open)));
 
-inicializar().catch(e=>mostrarLogin(e.message));
+inicializar().catch(tratarFalhaInicial);

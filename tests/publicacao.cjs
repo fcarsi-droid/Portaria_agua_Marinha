@@ -22,13 +22,13 @@ async function get(path){const r=await fetch(base+path+'?publicacao='+Date.now()
  const [portal,porter,resident,management]=await Promise.all(['simples.js','portaria-simples.js','cadastro-simples.js','app.js'].map(get));
  for(const s of [portal,porter,resident,management])new Function(s);
  assert(!porter.includes('carregarSolicitacoes'));
- assert(!porter.includes('avisos_bloqueados')&&!management.includes('avisos_bloqueados'));
+ assert(porter.includes('avisos_bloqueados')&&management.includes('avisos_bloqueados'));assert(portal.includes('localStorage.setItem(sessionKey,value)'));
  assert(resident.includes('aprovação da administração'));
  assert(management.includes("new URL('admin.html',location.href).href"));
  await get('app.css');await get('vendor/supabase-2.118.0.js');
  for(const [acao,token,status] of [['moradores',null,401],['sessao',null,401],['ver_encomenda','a'.repeat(64),403]]){
   const r=await fetch(endpoint,{method:'POST',headers:{Origin:'https://portalaguamarinha.com.br','Content-Type':'application/json'},body:JSON.stringify({acao,dados:{},token})});const j=await r.json();assert.equal(r.status,status);assert(!j.nome&&!j.whatsapp&&!j.sessao);
  }
- console.log('OK: endereço principal, todos os arquivos, mudança no alto, cadastro sem conta, aprovação exclusiva da administração, suspensão desativada e gateway protegido.');
+ console.log('OK: endereço principal, todos os arquivos, mudança no alto, cadastro sem conta, aprovação exclusiva da administração, regra de suspensão presente, sessão persistente e gateway protegido.');
  console.log('Nenhuma mensagem, conta ou encomenda foi criada.');
 })().catch(e=>{console.error(e);process.exitCode=1});

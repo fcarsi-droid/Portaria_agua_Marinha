@@ -6,15 +6,16 @@ window.Lembretes = (() => {
   for(const e of rows||[]){
    if(e.status!=='DISPONÍVEL'||e.morador_ativo===false||e.morador_id==null||vistos.has(String(e.id)))continue;
    vistos.add(String(e.id));const key=String(e.morador_id),m=e.moradores||e;
-   if(!map.has(key))map.set(key,{id:key,nome:m.nome||'Morador',bloco:m.bloco||'?',apartamento:m.apartamento||'?',whatsapp:m.whatsapp,registros:0,volumes:0});
-   const g=map.get(key);g.registros++;g.volumes+=Number(e.quantidade)||0;
+   if(!map.has(key))map.set(key,{id:key,nome:m.nome||'Morador',bloco:m.bloco||'?',apartamento:m.apartamento||'?',whatsapp:m.whatsapp,registros:0,volumes:0,avisos_bloqueados:false});
+   const g=map.get(key);g.avisos_bloqueados=g.avisos_bloqueados||!!e.avisos_bloqueados;g.registros++;g.volumes+=Number(e.quantidade)||0;
   }
   return [...map.values()].sort((a,b)=>(a.bloco+' '+a.apartamento+' '+a.nome).localeCompare(b.bloco+' '+b.apartamento+' '+b.nome,'pt-BR',{numeric:true}));
  }
  function mensagem(m){
   const encomendas=m.registros===1?'1 encomenda':m.registros+' encomendas';
+  const suspensao=m.avisos_bloqueados?'\n\nOs avisos de novas remessas estão suspensos: há mais de 10 remessas sem baixa e o primeiro aviso pendente completou 4 dias. Regularize as confirmações de retirada.':'';
   const volumes=m.volumes===1?'1 volume':m.volumes+' volumes';
-  return '📦 *CONDOMÍNIO ÁGUA MARINHA*\n\nOlá, '+m.nome+'!\nUnidade '+m.bloco+'-'+m.apartamento+'.\n\nVocê tem *'+encomendas+' sem baixa* no sistema ('+volumes+').\n\nA confirmação de retirada deve ser feita por você, morador, pelo link enviado no aviso de cada encomenda. Essa confirmação é o seu protocolo de recebimento.\n\nSe já retirou, abra os avisos no WhatsApp e confirme o recebimento. Se ainda não retirou, confirme somente depois de retirar do armário.\n\nCaso não encontre algum aviso ou perceba uma divergência, entre em contato com a portaria.';
+  return '📦 *CONDOMÍNIO ÁGUA MARINHA*\n\nOlá, '+m.nome+'!\nUnidade '+m.bloco+'-'+m.apartamento+'.\n\nVocê tem *'+encomendas+' sem baixa* no sistema ('+volumes+').'+suspensao+'\n\nA confirmação de retirada deve ser feita por você, morador, pelo link enviado no aviso de cada encomenda. Essa confirmação é o seu protocolo de recebimento.\n\nSe já retirou, abra os avisos no WhatsApp e confirme o recebimento. Se ainda não retirou, confirme somente depois de retirar do armário.\n\nCaso não encontre algum aviso ou perceba uma divergência, entre em contato com a portaria.';
  }
  function montar(host,rows,opcoes={}){
   if(!host)return;

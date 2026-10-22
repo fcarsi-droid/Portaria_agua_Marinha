@@ -7,9 +7,9 @@ Versão simples publicada no endereço principal https://portalaguamarinha.com.b
 - Cadastro de moradores: nome, bloco, apartamento e WhatsApp; aprovação exclusiva da administração.
 - Administração: conta de e-mail do responsável, com configuração da senha da portaria.
 - Avisos pelo WhatsApp: o porteiro conclui o envio; cada encomenda recebe um link protegido. O portal não comprova entrega da mensagem.
-- A suspensão de avisos por pendências NÃO foi autorizada e NÃO está ativa nesta versão.
+- Regra autorizada pela síndica em 21/10/2026: avisos de novas remessas são suspensos quando há mais de 10 remessas DISPONÍVEL sem baixa e a mais antiga já completou 4 dias. Dez pendências não bloqueiam; a 11ª é registrada e já não gera aviso se o prazo estiver cumprido. A contagem é de registros de remessa, não volumes. Entregues, devolvidas e divergências não entram.
 
-A raiz contém a única versão mantida do portal. A proposta de suspensão da branch de melhorias não está publicada. Histórico anterior: commit 9cb7b58de5c3fb1324d7940d7383c664034a22b8. Nenhuma senha foi alterada pela publicação.
+A raiz contém a única versão mantida do portal. A regra anterior proposta não foi publicada; a regra autorizada de 21/10/2026 está descrita acima. Histórico anterior: commit 9cb7b58de5c3fb1324d7940d7383c664034a22b8. Nenhuma senha foi alterada pela publicação.
 
 O teste tests/publicacao.cjs verifica o endereço principal e o gateway sem criar dados nem enviar mensagens.
 
@@ -19,3 +19,8 @@ Validação da publicação: https://github.com/fcarsi-droid/Portaria_agua_Marin
 
 ## Links antigos
 A pasta nova-versao contém apenas index.html, portaria.html, cadastro.html e admin.html, com redirecionamento para a página correspondente na raiz. Não há scripts, estilos ou bibliotecas duplicados. Não remover esses redirecionamentos enquanto houver links antigos em circulação.
+
+## Acesso da portaria
+A sessão é persistida em localStorage, migrando a sessão da aba existente. No servidor, sessões válidas têm 30 dias e são renovadas durante o uso, no máximo uma atualização de prazo por dia. Apenas sessões ainda válidas foram prorrogadas na implantação; expiradas ou revogadas não são reativadas. Logout e troca da senha continuam revogando o acesso. Erros temporários de conexão não removem a sessão. Usar navegação normal do navegador; limpeza dos dados do site remove o acesso salvo.
+
+O bloqueio é validado no servidor para a portaria e para a administração. Registros e baixas continuam funcionando; links válidos anteriores permitem regularizar. Lembretes de regularização continuam disponíveis. O horário de registro do recebimento/aviso inicial é usado para avaliar os quatro dias, em intervalos de 96 horas; o portal não comprova entrega externa da mensagem no WhatsApp.

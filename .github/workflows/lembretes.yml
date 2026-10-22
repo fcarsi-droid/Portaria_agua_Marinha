@@ -8,6 +8,8 @@ on:
       - 'app.js'
       - 'tests/lembretes.cjs'
       - 'tests/mobile.cjs'
+      - 'tests/sessao-bloqueio.cjs'
+      - 'simples.js'
       - 'mobile.css'
       - 'portaria.html'
       - '.github/workflows/lembretes.yml'
@@ -28,5 +30,8 @@ jobs:
         env:
           NODE_PATH: /tmp/portal-lembretes/node_modules
       - run: node tests/mobile.cjs
+        env:
+          NODE_PATH: /tmp/portal-lembretes/node_modules
+      - run: node tests/sessao-bloqueio.cjs
         env:
           NODE_PATH: /tmp/portal-lembretes/node_modules
