@@ -29,7 +29,7 @@ const server=http.createServer((req,res)=>{const p=req.url.split('?')[0];try{con
  assert.equal(await page.locator('#atalho-mudanca').getAttribute('aria-expanded'),'true');
  await page.locator('#atalho-lembrete').click();await page.getByLabel('Morador com encomendas sem baixa').selectOption('1');
  assert(await page.locator('#painel-lembrete').evaluate(e=>e.open));assert(!(await page.locator('#cadastros-moradores').evaluate(e=>e.open)));
- assert((await page.locator('#lembrete-morador').innerText()).includes('2 encomendas sem baixa'));
+ assert((await page.locator('#lembrete-morador').innerText()).includes('1 encomenda sem baixa'));
  await page.locator('#atalho-lembrete').click();assert(!(await page.locator('#painel-lembrete').evaluate(e=>e.open)));
  await page.locator('[data-baixa]').first().click();await page.locator('#modal-overlay.aberto').waitFor();await page.getByRole('button',{name:'Cancelar',exact:true}).click();
  await page.locator('[data-devolver="7"]').click();await page.getByRole('button',{name:'Confirmar devolução à portaria',exact:true}).waitFor();
