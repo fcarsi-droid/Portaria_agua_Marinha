@@ -8,6 +8,7 @@ on:
       - 'app.js'
       - 'tests/lembretes.cjs'
       - 'tests/mobile.cjs'
+      - 'tests/duplicidade.cjs'
       - 'tests/sessao-bloqueio.cjs'
       - 'simples.js'
       - 'mobile.css'
@@ -33,5 +34,9 @@ jobs:
         env:
           NODE_PATH: /tmp/portal-lembretes/node_modules
       - run: node tests/sessao-bloqueio.cjs
+        env:
+          NODE_PATH: /tmp/portal-lembretes/node_modules
+
+      - run: node tests/duplicidade.cjs
         env:
           NODE_PATH: /tmp/portal-lembretes/node_modules

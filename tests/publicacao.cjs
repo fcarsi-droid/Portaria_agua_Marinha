@@ -6,7 +6,7 @@ async function get(path){const r=await fetch(base+path+'?publicacao='+Date.now()
  let pages;
  for(let i=0;i<30;i++){
   pages=await Promise.all(['index.html','portaria.html','cadastro.html','admin.html'].map(get));
-  if(pages.every(s=>s.includes('20261020-publicada'))&&pages[1].includes('regra-20261021')&&pages[3].includes('regra-20261021'))break;
+  if(pages.every(s=>s.includes('20261020-publicada'))&&pages[1].includes('registro-1')&&pages[3].includes('registro-1'))break;
   if(i===29)throw Error('A publicação no endereço principal não foi concluída.');
   await new Promise(r=>setTimeout(r,5000));
  }

@@ -25,3 +25,9 @@ button.atalho-lembrete{background:#e6f8f6;border-color:#40aaa0;color:#115e59}
 .cartao-encomenda .encomenda-acoes [data-devolver]{color:#9f3540}
 @media(max-width:360px){.atalhos-portal{grid-template-columns:1fr}button.botao-atalho{min-height:80px}.cartao-encomenda{padding:14px}.cartao-encomenda .encomenda-nome{font-size:16px}}
 @media(max-width:850px){#parcel-list .item{padding:16px;border:1px solid #dce6ec;border-radius:12px;margin-top:12px}#parcel-list .item h3{font-size:17px;line-height:1.5;overflow-wrap:anywhere}#parcel-list .item .actions{display:grid;grid-template-columns:repeat(2,minmax(0,1fr))}#parcel-list .item .actions button{min-height:46px}#parcel-list .item .meta{font-size:13px}}
+
+.registro-anterior{margin:12px 0;padding:14px;border:1px solid #f3ad64;border-radius:10px;background:#fff7ed;color:#78350f;font-size:14px;line-height:1.5;overflow-wrap:anywhere}
+.registro-anterior[hidden]{display:none}
+.registro-anterior p{margin:0 0 10px}
+.registro-anterior button,#aviso-envio button,#aviso-envio a{min-height:46px;white-space:normal;justify-content:center}
+#aviso-envio .encomenda-acoes{display:grid;gap:10px;margin-top:12px}

@@ -10,6 +10,7 @@ window.Portal = (() => {
  async function call(acao,dados={},token=null){
   const response=await fetch(endpoint,{method:'POST',headers:{'Content-Type':'application/json',...(sessao?{Authorization:'Bearer '+sessao}:{})},body:JSON.stringify({acao,dados,token}),cache:'no-store'});
   let result;try{result=await response.json()}catch{throw Error('Não foi possível conectar ao portal. Tente novamente.')}
+  if(response.status===409&&result.registro_existente&&result.id&&acao==='registrar')return result;
   if(response.status===409&&result.avisos_bloqueados&&result.id&&['registrar','avisar'].includes(acao))return result;
   if(!response.ok||result.erro){const error=Error(result.erro||'Não foi possível concluir. Tente novamente.');error.status=response.status;if(response.status===401&&acao!=='entrar')clear();throw error}
   return result;
