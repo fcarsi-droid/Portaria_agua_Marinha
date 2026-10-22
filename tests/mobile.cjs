@@ -40,4 +40,4 @@ const server=http.createServer((req,res)=>{const p=req.url.split('?')[0];try{con
  assert.deepEqual(errors,[]);
  console.log('OK: atalhos visíveis, abertura e foco, lembrete, nome completo, unidade, volumes, data, botões de toque, ordem e ausência de rolagem horizontal em 320/390/430/1024px. Sem gravações ou mensagens.');
  await browser.close();server.close();
-})().catch(e=>{console.error(e);server.close();process.exitCode=1});
+})().catch(e=>{console.error(e);server.close();process.exit(1)});
