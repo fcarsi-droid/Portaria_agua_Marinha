@@ -1,7 +1,7 @@
+begin;
 do $test$
 declare mid int; outro int; antigo int; novo int; admin_id uuid; admin_session uuid; s text:=encode(extensions.gen_random_bytes(32),'hex'); exp text:=encode(extensions.gen_random_bytes(32),'hex');rev text:=encode(extensions.gen_random_bytes(32),'hex');t text;r jsonb;op uuid:=gen_random_uuid(); n int; 
 begin
- begin
   insert into portal_private.sessoes_portaria(token_hash,expira_em) values(encode(extensions.digest(s,'sha256'),'hex'),now()+interval '1 hour');
   insert into portal_private.sessoes_portaria(token_hash,expira_em) values(encode(extensions.digest(exp,'sha256'),'hex'),now()-interval '1 hour');
   insert into portal_private.sessoes_portaria(token_hash,expira_em,revogada) values(encode(extensions.digest(rev,'sha256'),'hex'),now()+interval '1 hour',true);
@@ -46,7 +46,7 @@ begin
   r:=public.portal_gateway('aprovar','{}',s);if r->>'codigo'<>'403' then raise exception 'Portaria pode aprovar';end if;
   perform public.portal_gateway('sair','{}',s);r:=public.portal_gateway('sessao','{}',s);if r->>'codigo'<>'401' then raise exception 'Logout não revogou sessão';end if;
   if has_function_privilege('anon','portal_private.situacao_avisos(integer)','execute') or has_function_privilege('authenticated','portal_private.situacao_avisos(integer)','execute') then raise exception 'Função privada exposta';end if;
-  raise exception using errcode='ZX001',message='VERIFICACAO_OK_REVERTER_DADOS_DE_TESTE';
- exception when sqlstate 'ZX001' then null;
- end;
 end $test$;
+
+select 'OK: dez não bloqueiam; décima primeira bloqueada com primeiro aviso de quatro dias; sessões renovadas, expiradas/revogadas recusadas; links e regularização preservados' as resultado;
+rollback;
